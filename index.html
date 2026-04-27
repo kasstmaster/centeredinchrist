@@ -92,6 +92,47 @@
       }
     }
 
+    /* Service / Fellowship buttons */
+    .service-btn-container {
+      width: min(600px, calc(100% - 20px));
+      margin: 0 auto;
+    }
+
+    .service-btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .service-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #fff;
+      color: #000;
+      padding: 14px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 15px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    @media (min-width: 601px) {
+      .service-btn-row {
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      .service-btn {
+        flex: 1;
+        max-width: 200px;
+        width: auto;
+      }
+    }
+
     .sticky-video {
       position: sticky;
       top: 0;
@@ -266,24 +307,17 @@
         indicator.classList.remove("live");
     
         top.innerHTML = `
-          <div style="width: min(600px, calc(100% - 20px)); margin: 0 auto;">
-          
-            <a href="https://www.youtube.com/@CenteredinChristMinistries/featured" target="_blank"
-              style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; color: #000; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 15px; width: 100%; box-sizing: border-box;">
-              
-              <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" style="width: 18px; height: 18px;">
-              Services & Worship
-            </a>
-          
-            <div style="height: 12px;"></div>
-          
-            <a href="https://www.youtube.com/@CenteredinChristMinistries/community" target="_blank"
-              style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; color: #000; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 15px; width: 100%; box-sizing: border-box;">
-              
-              <img src="https://i.postimg.cc/283Gtj2K/80eec35b-7a6d-42f5-a704-117197714e28-removebg-preview.png" style="width: 18px;">
-              Online Fellowship
-            </a>
-          
+          <div class="service-btn-container">
+            <div class="service-btn-row">
+              <a href="https://www.youtube.com/@CenteredinChristMinistries/featured" target="_blank" class="service-btn">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" style="width: 18px; height: 18px;">
+                Services & Worship
+              </a>
+              <a href="https://www.youtube.com/@CenteredinChristMinistries/community" target="_blank" class="service-btn">
+                <img src="https://i.postimg.cc/283Gtj2K/80eec35b-7a6d-42f5-a704-117197714e28-removebg-preview.png" style="width: 18px;">
+                Online Fellowship
+              </a>
+            </div>
           </div>
         `;
       }
