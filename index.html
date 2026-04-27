@@ -330,8 +330,17 @@
     
     async function checkLive() {
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
+      let data;
+      
+      try {
+        const res = await fetch(url);
+        data = await res.json();
+      } catch (err) {
+        console.error("Live check failed:", err);
+      
+        loadLatestVideo();
+        return;
+      }
     
       const top = document.getElementById("topContent");
       const status = document.getElementById("status");
