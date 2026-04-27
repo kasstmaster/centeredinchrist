@@ -3,18 +3,17 @@
 <head>
   <title>Live Service</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       text-align: center;
       font-family: Arial;
       background: #0e0e0e;
       color: white;
+      margin: 0;
+      padding: 0 10px;
     }
-    iframe {
-      width: 90%;
-      height: 500px;
-      border: none;
-    }
+    
     .header {
       width: 100%;
       padding: 25px 0;
@@ -23,6 +22,58 @@
       font-size: 26px;
       letter-spacing: 3px;
       text-transform: uppercase;
+    }
+    
+    h1 {
+      font-size: 28px;
+      margin-top: 20px;
+    }
+    
+    h2 {
+      font-size: 24px;
+    }
+    
+    p {
+      font-size: 18px;
+      line-height: 1.5;
+    }
+    
+    iframe {
+      width: 100%;
+      max-width: 800px;
+      height: 450px;
+      border: none;
+    }
+    
+    /* Images */
+    .responsive-img {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 32px;
+      }
+    
+      h2 {
+        font-size: 26px;
+      }
+    
+      p {
+        font-size: 20px;
+      }
+    
+      .header {
+        font-size: 22px;
+      }
+    
+      iframe {
+        height: 220px;
+      }
     }
   </style>
 </head>
@@ -68,11 +119,11 @@
               3509 Mt Pinos Way<br>
               Frazier Park, CA
             <br>
-            <img src="https://i.postimg.cc/vTJFyZb8/Screenshot-2026-04-26-at-5-33-59-PM.png" style="margin-top: 15px; max-width: 600px; width: 100%; border-radius: 8px;">
+            <img src="https://i.postimg.cc/vTJFyZb8/Screenshot-2026-04-26-at-5-33-59-PM.png" class="responsive-img">
             </p></a><br><br>
             
             <a href="https://pinemountainclub.com/frazier-park.html" target="_blank" style="display: inline-block; margin-top: 20px;">
-              <div style="position: relative; max-width: 600px; width: 100%;">
+              <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto;">
                 <img 
                   src="https://i.postimg.cc/Y0bGDT77/frazier-park-footer.jpg" 
                   style="
