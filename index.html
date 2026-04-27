@@ -237,6 +237,30 @@
 
     const bottom = document.getElementById("bottomContent");
     bottom.innerHTML = bottomHTML;
+
+    const top = document.getElementById("topContent");
+    const indicator = document.getElementById("liveIndicator");
+    
+    top.innerHTML = `
+      <div style="margin-top: 15px;">
+        <a href="https://www.youtube.com/playlist?list=PLzgM3MIRo77BmImYbb36nNrE9vZIxb3Lc" target="_blank"
+          style="
+            display: inline-block;
+            background: #fff;
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+          ">
+          ▶ Watch Previous Services
+        </a>
+      </div>
+    `;
+    
+    indicator.textContent = "🔴 OFFLINE";
+    indicator.classList.remove("live");
     
     async function checkLive() {
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`;
@@ -268,24 +292,6 @@
         `;
         indicator.textContent = "🔴 OFFLINE";
         indicator.classList.remove("live");
-    
-        top.innerHTML = `
-          <div style="margin-top: 15px;">
-            <a href="https://www.youtube.com/playlist?list=PLzgM3MIRo77BmImYbb36nNrE9vZIxb3Lc" target="_blank"
-              style="
-                display: inline-block;
-                background: #fff;
-                color: #000;
-                padding: 10px 18px;
-                border-radius: 20px;
-                text-decoration: none;
-                font-weight: bold;
-                font-size: 14px;
-              ">
-              ▶  Watch Previous Services
-            </a>
-          </div>
-        `;
       }
     }
 
