@@ -103,32 +103,6 @@
         padding-top: 50%;
       }
     }
-
-    .live-dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background: #2ecc71;
-      border-radius: 50%;
-      margin-right: 8px;
-      animation: pulse 1.5s infinite;
-      vertical-align: middle;
-    }
-    
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.6);
-        opacity: 0.6;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
   </style>
 </head>
 <body>
@@ -239,7 +213,7 @@
       if (data.items && data.items.length > 0) {
         const videoId = data.items[0].id.videoId;
     
-        status.innerHTML = `<span class="live-dot"></span>Live Service`;
+        status.textContent = "🟢 Live Service";
     
         top.innerHTML = `
           <div class="sticky-video">
@@ -250,7 +224,7 @@
         `;
     
       } else {
-        status.textContent = "Live Service";
+        status.textContent = "🔴 Live Service";
     
         top.innerHTML = `
           <h2>We are currently offline</h2>
