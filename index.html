@@ -154,44 +154,55 @@
                   Frazier Park, CA
                 </p>
           
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-          
-                  <a 
-                    href="https://maps.google.com/?q=3509+Mt+Pinos+Way+Frazier+Park+CA" 
-                    target="_blank"
-                    style="
-                      background: white;
-                      color: black;
-                      padding: 8px 14px;
-                      border-radius: 6px;
-                      text-decoration: none;
-                      font-size: 14px;
-                      font-weight: bold;
-                    "
-                  >
-                    Open in Maps
-                  </a>
-          
-                  <button 
-                    onclick="
-                      navigator.clipboard.writeText('3509 Mt Pinos Way, Frazier Park, CA');
-                      this.innerText='Copied!';
-                      setTimeout(() => this.innerText='Copy Address', 1500);
-                    "
-                    style="
-                      background: rgba(255,255,255,0.2);
-                      color: white;
-                      padding: 8px 14px;
-                      border-radius: 6px;
-                      border: 1px solid white;
-                      font-size: 14px;
-                      cursor: pointer;
-                    "
-                  >
-                    Copy Address
-                  </button>
-          
-                </div>
+              </div>
+
+              <div style="
+                position: absolute;
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 90%;
+              ">
+              
+                <a 
+                  href="https://maps.google.com/?q=3509+Mt+Pinos+Way+Frazier+Park+CA" 
+                  target="_blank"
+                  style="
+                    background: white;
+                    color: black;
+                    padding: 10px 16px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 14px;
+                    font-weight: bold;
+                  "
+                >
+                  Open in Maps
+                </a>
+              
+                <button 
+                  onclick="
+                    navigator.clipboard.writeText('3509 Mt Pinos Way, Frazier Park, CA');
+                    this.innerText='Copied!';
+                    setTimeout(() => this.innerText='Copy Address', 1500);
+                  "
+                  style="
+                    background: rgba(0,0,0,0.5);
+                    color: white;
+                    padding: 10px 16px;
+                    border-radius: 8px;
+                    border: 1px solid white;
+                    font-size: 14px;
+                    cursor: pointer;
+                  "
+                >
+                  Copy Address
+                </button>
+              
               </div>
           
             </div>
