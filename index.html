@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Live Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       text-align: center;
@@ -14,9 +15,21 @@
       height: 500px;
       border: none;
     }
+    .header {
+      width: 100%;
+      padding: 20px 0;
+      border-bottom: 1px solid #333;
+      font-family: 'Cinzel', serif;
+      font-size: 24px;
+      letter-spacing: 2px;
+    }
   </style>
 </head>
 <body>
+
+  <div class="header">
+    Centered in Christ Ministries
+  </div>
 
   <h1 id="status">🔴 Live Service</h1>
   <div id="content">Checking livestream...</div>
@@ -46,10 +59,17 @@
       
         container.innerHTML = `
           <h2>We are currently offline</h2>
-          <p>Join us Sundays at 10:00 AM</p>
+          <p>Join us live Sundays at 2:00PM</p>
+      
+          <div style="margin-top: 20px;">
+            <p>Come worship with us in person::</p>
+            <p>
+              3509 Mt Pinos Way<br>
+              Frazier Park, CA
+            </p>
+          </div>
         `;
       }
-    }
     
     checkLive();
     setInterval(checkLive, 30000);
