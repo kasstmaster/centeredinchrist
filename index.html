@@ -36,6 +36,10 @@
       font-size: 18px;
       font-weight: normal;
     }
+
+    h2 strong {
+      font-weight: bold;
+    }
     
     p {
       font-size: 18px;
@@ -157,11 +161,10 @@
 
     const bottomHTML = `
       <div style="margin-top: 25px;">
-      
-        <br>
-         <h1>
-          Local Services
-         </h1>
+
+          <h1 style="margin-top: 20px;">
+            Local Services
+          </h1>
             
           <div style="position: relative; max-width: 600px; margin: 0 auto;">
         
@@ -263,7 +266,7 @@
         `;
     
       } else {
-        status.innerHTML = `Live Stream Services<br>Sundays at 2:00PM PST`;
+        status.innerHTML = `<strong>Live Stream Services</strong><br>Sundays at 2:00PM PST`;
         indicator.textContent = "🔴 OFFLINE";
         indicator.classList.remove("live");
     
