@@ -18,7 +18,7 @@
 </head>
 <body>
 
-  <h1>🔴 Live Service</h1>
+  <h1 id="status">🔴 Live Service</h1>
   <div id="content">Checking livestream...</div>
 
   <script>
@@ -34,17 +34,22 @@
 
       if (data.items && data.items.length > 0) {
         const videoId = data.items[0].id.videoId;
+      
+        status.textContent = "🟢 We Are Live";
+      
         container.innerHTML = `
           <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
         `;
       } else {
+        status.textContent = "🔴 We Are Offline";
+      
         container.innerHTML = `
           <h2>We are currently offline</h2>
           <p>Join us Sundays at 10:00 AM</p>
         `;
       }
     }
-
+    
     checkLive();
     setInterval(checkLive, 30000);
   </script>
