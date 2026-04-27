@@ -87,164 +87,123 @@
   </div>
 
   <h1 id="status">🔴 Live Service</h1>
-  <div id="content">Checking livestream...</div>
+  <div id="topContent">Checking livestream...</div>
+  <div id="bottomContent"></div>
 
   <script>
     const API_KEY = "AIzaSyA7bU3MKozwte7W_jOXq-uz8ccBmddkp28";
     const CHANNEL_ID = "UCubyomJfZo_C11A5fxRWnGw";
 
+    const bottomHTML = `
+      <div style="margin-top: 25px;">
+      
+        <div style="position: relative; max-width: 600px; margin: 0 auto;">
+        
+          <img 
+            src="https://i.postimg.cc/vTJFyZb8/Screenshot-2026-04-26-at-5-33-59-PM.png" 
+            class="responsive-img"
+          >
+    
+          <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.4);
+          "></div>
+    
+          <div style="
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            width: 90%;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+          ">
+            <p style="font-size: 20px; font-weight: bold; margin-bottom: 6px;">
+              Come worship with us in person:
+            </p>
+            <p style="font-size: 18px; margin-bottom: 10px;">
+              3509 Mt Pinos Way<br>
+              Frazier Park, CA<br>
+              Doors open Sundays at 1:30PM
+            </p>
+          </div>
+    
+          <div style="
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            width: 90%;
+            justify-content: center;
+          ">
+          
+            <a href="https://maps.google.com/?q=3509+Mt+Pinos+Way+Frazier+Park+CA" target="_blank"
+              style="background: white; color: black; padding: 12px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: bold; text-shadow: none; flex: 1; max-width: 180px; text-align: center;">
+              Open in Maps
+            </a>
+          
+            <button onclick="navigator.clipboard.writeText('3509 Mt Pinos Way, Frazier Park, CA'); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy Address', 1500);"
+              style="background: rgba(0,0,0,0.7); color: white; padding: 12px; border-radius: 10px; border: 1px solid white; font-size: 15px; cursor: pointer; flex: 1; max-width: 180px;">
+              Copy Address
+            </button>
+          
+          </div>
+    
+        </div>
+    
+        <br><br>
+        
+        While you’re here, explore the rest Frazier Park!<br>
+        
+        <a href="https://pinemountainclub.com/frazier-park.html" target="_blank" style="display: inline-block; margin-top: 20px;">
+          <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto;">
+            <img src="https://i.postimg.cc/Y0bGDT77/frazier-park-footer.jpg" style="width: 100%; border-radius: 8px;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 25px; font-weight: bold; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">
+              Discover Frazier Park
+            </div>
+          </div>
+        </a><br><br><br>
+      </div>
+    `;
+
+    const bottom = document.getElementById("bottomContent");
+    bottom.innerHTML = bottomHTML;
+    
     async function checkLive() {
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`;
       const res = await fetch(url);
       const data = await res.json();
-
-      const container = document.getElementById("content");
+    
+      const top = document.getElementById("topContent");
       const status = document.getElementById("status");
-
+    
       if (data.items && data.items.length > 0) {
         const videoId = data.items[0].id.videoId;
-      
+    
         status.textContent = "🟢 Live Service";
-      
-        container.innerHTML = `
+    
+        top.innerHTML = `
           <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
         `;
+    
       } else {
         status.textContent = "🔴 Live Service";
-      
-        container.innerHTML = `
+    
+        top.innerHTML = `
           <h2>We are currently offline</h2>
           <p>Join us live Sundays at 2:00PM</p><br><br>
-      
-          <div style="margin-top: 25px;">
-          
-            <div style="position: relative; max-width: 600px; margin: 0 auto;">
-          
-              <img 
-                src="https://i.postimg.cc/vTJFyZb8/Screenshot-2026-04-26-at-5-33-59-PM.png" 
-                class="responsive-img"
-              >
-          
-              <div style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                border-radius: 8px;
-                background: rgba(0,0,0,0.4);
-              "></div>
-
-              <div style="
-                position: absolute;
-                top: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                color: white;
-                text-align: center;
-                width: 90%;
-                text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-              ">
-                <p style="font-size: 20px; font-weight: bold; margin-bottom: 6px;">
-                  Come worship with us in person:
-                </p>
-                <p style="font-size: 18px; margin-bottom: 10px;">
-                  3509 Mt Pinos Way<br>
-                  Frazier Park, CA<br>
-                  Doors open Sundays at 1:30PM
-                </p>
-              </div>
-
-              <div style="
-                position: absolute;
-                bottom: 15px;
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                gap: 10px;
-                width: 90%;
-                justify-content: center;
-              ">
-              
-                <a 
-                  href="https://maps.google.com/?q=3509+Mt+Pinos+Way+Frazier+Park+CA" 
-                  target="_blank"
-                  style="
-                    background: white;
-                    color: black;
-                    padding: 12px;
-                    border-radius: 10px;
-                    text-decoration: none;
-                    font-size: 15px;
-                    font-weight: bold;
-                    text-shadow: none;
-                    flex: 1;
-                    max-width: 180px;
-                    text-align: center;
-                  "
-                >
-                  Open in Maps
-                </a>
-              
-                <button 
-                  onclick="
-                    navigator.clipboard.writeText('3509 Mt Pinos Way, Frazier Park, CA');
-                    this.innerText='Copied!';
-                    setTimeout(() => this.innerText='Copy Address', 1500);
-                  "
-                  style="
-                    background: rgba(0,0,0,0.7);
-                    color: white;
-                    padding: 12px;
-                    border-radius: 10px;
-                    border: 1px solid white;
-                    font-size: 15px;
-                    cursor: pointer;
-                    flex: 1;
-                    max-width: 180px;
-                  "
-                >
-                  Copy Address
-                </button>
-              
-              </div>
-          
-            </div>
-          
-            <br><br>
-            
-            While you’re here, explore the rest Frazier Park!<br>
-            
-            <a href="https://pinemountainclub.com/frazier-park.html" target="_blank" style="display: inline-block; margin-top: 20px;">
-              <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto;">
-                <img 
-                  src="https://i.postimg.cc/Y0bGDT77/frazier-park-footer.jpg" 
-                  style="
-                    width: 100%;
-                    border-radius: 8px;
-                  "
-                >
-            
-                <div style="
-                  position: absolute;
-                  top: 50%;
-                  left: 50%;
-                  transform: translate(-50%, -50%);
-                  color: white;
-                  font-size: 25px;
-                  font-weight: bold;
-                  text-align: center;
-                  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-                ">
-                  Discover Frazier Park
-                </div>
-              </div>
-            </a><br><br><br>
-          </div>
         `;
       }
     }
-    
+
     checkLive();
     setInterval(checkLive, 30000);
   </script>
