@@ -238,35 +238,59 @@
     const bottom = document.getElementById("bottomContent");
     bottom.innerHTML = bottomHTML;
 
-    const playlistHTML = `
-      <div style="margin-top: 40px;">
-        <p style="font-size: 18px; opacity: 0.8; margin-bottom: 15px;">
-          Missed a service?
-        </p>
-    
-        <a href="https://www.youtube.com/playlist?list=PLzgM3MIRo77BmImYbb36nNrE9vZIxb3Lc" target="_blank"
-          style="
-            display: inline-block;
-            background: #fff;
-            color: #000;
-            padding: 14px 22px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 16px;
-          ">
-          ▶ Watch Previous Services
-        </a>
-      </div>
-    `;
-
     const top = document.getElementById("topContent");
     const indicator = document.getElementById("liveIndicator");
     
-    top.innerHTML = playlistHTML;
-    
     indicator.textContent = "🔴 OFFLINE";
     indicator.classList.remove("live");
+
+    async function loadLatestVideo() {
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=1&order=date&type=video&key=${API_KEY}`;
+      const res = await fetch(url);
+      const data = await res.json();
+    
+      if (data.items && data.items.length > 0) {
+        const video = data.items[0];
+        const videoId = video.id.videoId;
+        const title = video.snippet.title;
+        const thumbnail = video.snippet.thumbnails.high.url;
+    
+        const top = document.getElementById("topContent");
+    
+        top.innerHTML = `
+          <div style="margin-top: 30px;">
+            <p style="font-size: 18px; opacity: 0.8; margin-bottom: 12px;">
+              Watch our latest service
+            </p>
+    
+            <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" style="text-decoration: none; color: white;">
+              
+              <div style="position: relative; max-width: 700px; margin: 0 auto;">
+                
+                <img src="${thumbnail}" style="width: 100%; border-radius: 10px;">
+                
+                <div style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  font-size: 50px;
+                  opacity: 0.9;
+                ">
+                  ▶
+                </div>
+    
+              </div>
+    
+              <p style="margin-top: 10px; font-size: 16px;">
+                ${title}
+              </p>
+    
+            </a>
+          </div>
+        `;
+      }
+    }
     
     async function checkLive() {
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`;
@@ -299,7 +323,7 @@
         indicator.textContent = "🔴 OFFLINE";
         indicator.classList.remove("live");
       
-        top.innerHTML = playlistHTML;
+        loadLatestVideo();
       }
     }
 
