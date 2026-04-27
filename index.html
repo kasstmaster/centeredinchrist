@@ -241,23 +241,7 @@
     const top = document.getElementById("topContent");
     const indicator = document.getElementById("liveIndicator");
     
-    top.innerHTML = `
-      <div style="margin-top: 15px;">
-        <a href="https://www.youtube.com/playlist?list=PLzgM3MIRo77BmImYbb36nNrE9vZIxb3Lc" target="_blank"
-          style="
-            display: inline-block;
-            background: #fff;
-            color: #000;
-            padding: 10px 18px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-          ">
-          ▶ Watch Previous Services
-        </a>
-      </div>
-    `;
+    top.innerHTML = playlistHTML;
     
     indicator.textContent = "🔴 OFFLINE";
     indicator.classList.remove("live");
@@ -292,6 +276,8 @@
           `;
           indicator.textContent = "🔴 OFFLINE";
           indicator.classList.remove("live");
+        
+          top.innerHTML = playlistHTML;
         }
     }
 
@@ -299,6 +285,24 @@
       const top = document.getElementById("topContent");
       top.scrollIntoView({ behavior: "smooth" });
     }
+
+    const playlistHTML = `
+      <div style="margin-top: 15px;">
+        <a href="https://www.youtube.com/playlist?list=PLzgM3MIRo77BmImYbb36nNrE9vZIxb3Lc" target="_blank"
+          style="
+            display: inline-block;
+            background: #fff;
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+          ">
+          ▶ Watch Previous Services
+        </a>
+      </div>
+    `;
         
     checkLive();
     setInterval(checkLive, 30000);
