@@ -14,7 +14,7 @@
       background: #0e0e0e;
       color: white;
       margin: 0;
-      padding: 0 10px;
+      padding: 0;
     }
     
     .header {
@@ -41,11 +41,18 @@
       line-height: 1.5;
     }
     
-    iframe {
+    .video-wrapper {
+      position: relative;
       width: 100%;
-      max-width: 800px;
-      height: 450px;
-      border: none;
+      padding-top: 56.25%;
+    }
+    
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
     
     /* Images */
@@ -88,7 +95,7 @@
 
   <h1 id="status">🔴 Live Service</h1>
   <div id="topContent">Checking livestream...</div>
-  <div id="bottomContent"></div>
+  <div id="bottomContent" style="padding: 0 10px;"></div>
 
   <script>
     const API_KEY = "AIzaSyA7bU3MKozwte7W_jOXq-uz8ccBmddkp28";
@@ -191,7 +198,9 @@
         status.textContent = "🟢 Live Service";
     
         top.innerHTML = `
-          <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+          <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+          </div>
         `;
     
       } else {
