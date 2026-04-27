@@ -139,7 +139,14 @@
     Centered in Christ Ministries
   </div>
 
-  <h1 id="status">Live Services - Sundays at 2:00PM</h1>
+  <h1 style="margin-top: 20px;">
+    Online Services
+  </h1>
+  
+  <h2 id="status">
+    Live Stream<br>
+    Sundays at 2:00PM PST
+  </h2>
   <div id="topContent"></div>
   <div id="bottomContent" style="padding: 0 10px;"></div>
 
@@ -255,11 +262,30 @@
         `;
     
       } else {
-        status.textContent = "Live Services - Sundays at 2:00PM";
+        status.innerHTML = `
+          Live Stream<br>
+          Sundays at 2:00PM PST
+        `;
         indicator.textContent = "🔴 OFFLINE";
         indicator.classList.remove("live");
     
-        top.innerHTML = ``;
+        top.innerHTML = `
+          <div style="margin-top: 15px;">
+            <a href="https://www.youtube.com/playlist?list=PLzgM3MIRo77BmImYbb36nNrE9vZIxb3Lc" target="_blank"
+              style="
+                display: inline-block;
+                background: #fff;
+                color: #000;
+                padding: 10px 18px;
+                border-radius: 20px;
+                text-decoration: none;
+                font-weight: bold;
+                font-size: 14px;
+              ">
+              ▶ Watch Previous Services
+            </a>
+          </div>
+        `;
       }
     }
 
