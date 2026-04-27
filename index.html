@@ -255,14 +255,11 @@
         `;
     
       } else {
-        status.textContent = "Live Services";
+        status.textContent = "Live Services - Sundays at 2:00PM";
         indicator.textContent = "🔴 OFFLINE";
         indicator.classList.remove("live");
     
-        top.innerHTML = `
-          <h2>We are currently offline</h2>
-          <p>Join us live Sundays at 2:00PM</p><br><br>
-        `;
+        top.innerHTML = ``;
       }
     }
 
