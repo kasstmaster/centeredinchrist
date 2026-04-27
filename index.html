@@ -85,6 +85,24 @@
         height: 220px;
       }
     }
+
+    .sticky-video {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+    
+    .sticky-video .video-wrapper {
+      padding-top: 40%;
+    }
+    
+    @media (max-width: 600px) {
+      .sticky-video .video-wrapper {
+        padding-top: 50%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -198,8 +216,10 @@
         status.textContent = "🟢 Live Service";
     
         top.innerHTML = `
-          <div class="video-wrapper">
-            <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+          <div class="sticky-video">
+            <div class="video-wrapper">
+              <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+            </div>
           </div>
         `;
     
