@@ -113,14 +113,86 @@
           <h2>We are currently offline</h2>
           <p>Join us live Sundays at 2:00PM</p>
       
-          <div style="margin-top: 20px;">
-            <p>Come worship with us in person:</p>
-            <p><a href="https://maps.google.com/?q=3509+Mt+Pinos+Way+Frazier+Park+CA" target="_blank">
-              3509 Mt Pinos Way<br>
-              Frazier Park, CA
-            <br>
-            <img src="https://i.postimg.cc/vTJFyZb8/Screenshot-2026-04-26-at-5-33-59-PM.png" class="responsive-img">
-            </p></a><br><br>
+          <div style="margin-top: 25px;">
+          
+            <div style="position: relative; max-width: 600px; margin: 0 auto;">
+          
+              <img 
+                src="https://i.postimg.cc/vTJFyZb8/Screenshot-2026-04-26-at-5-33-59-PM.png" 
+                class="responsive-img"
+              >
+          
+              <div style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 8px;
+                background: rgba(0,0,0,0.4);
+              "></div>
+          
+              <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: white;
+                text-align: center;
+                width: 90%;
+              ">
+                <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">
+                  Come worship with us in person:
+                </p>
+          
+                <p style="font-size: 18px; margin-bottom: 15px;">
+                  3509 Mt Pinos Way<br>
+                  Frazier Park, CA
+                </p>
+          
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          
+                  <a 
+                    href="https://maps.google.com/?q=3509+Mt+Pinos+Way+Frazier+Park+CA" 
+                    target="_blank"
+                    style="
+                      background: white;
+                      color: black;
+                      padding: 8px 14px;
+                      border-radius: 6px;
+                      text-decoration: none;
+                      font-size: 14px;
+                      font-weight: bold;
+                    "
+                  >
+                    Open in Maps
+                  </a>
+          
+                  <button 
+                    onclick="
+                      navigator.clipboard.writeText('3509 Mt Pinos Way, Frazier Park, CA');
+                      this.innerText='Copied!';
+                      setTimeout(() => this.innerText='Copy Address', 1500);
+                    "
+                    style="
+                      background: rgba(255,255,255,0.2);
+                      color: white;
+                      padding: 8px 14px;
+                      border-radius: 6px;
+                      border: 1px solid white;
+                      font-size: 14px;
+                      cursor: pointer;
+                    "
+                  >
+                    Copy Address
+                  </button>
+          
+                </div>
+              </div>
+          
+            </div>
+          
+            <br><br>
             
             <a href="https://pinemountainclub.com/frazier-park.html" target="_blank" style="display: inline-block; margin-top: 20px;">
               <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto;">
