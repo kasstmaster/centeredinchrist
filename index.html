@@ -203,6 +203,49 @@
       gap: 14px;
     }
 
+    .prayer-requests-section {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid #333;
+    }
+
+    .prayer-requests-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .prayer-requests-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .prayer-requests-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .prayer-request-card {
+      background: #0e0e0e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    .prayer-request-empty {
+      color: #ccc;
+      font-size: 14px;
+      margin: 0;
+    }
+
     .auth-message {
       min-height: 20px;
       font-size: 14px;
@@ -414,6 +457,16 @@
         </div>
         <div id="passwordMessage" class="auth-message"></div>
       </form>
+
+      <div class="prayer-requests-section">
+        <div class="prayer-requests-header">
+          <h3>Prayer Requests</h3>
+          <button type="button" class="secondary-button" onclick="loadPrayerRequests()">Refresh</button>
+        </div>
+        <p>Requests marked to share with as many people as possible are shown here.</p>
+        <div id="prayerRequestsMessage" class="auth-message"></div>
+        <ul id="prayerRequestsList" class="prayer-requests-list"></ul>
+      </div>
     </div>
   </section>
 
@@ -441,6 +494,7 @@
       session: "session",
       logout: "logout",
       updatePasswords: "updatePasswords",
+      prayerRequests: "prayerRequests",
       liveStatus: "liveStatus"
     });
 
@@ -532,6 +586,8 @@
     const adminArea = document.getElementById("adminArea");
     const passwordForm = document.getElementById("passwordForm");
     const passwordMessage = document.getElementById("passwordMessage");
+    const prayerRequestsMessage = document.getElementById("prayerRequestsMessage");
+    const prayerRequestsList = document.getElementById("prayerRequestsList");
 
     bottom.innerHTML = bottomHTML;
 
@@ -542,6 +598,8 @@
       staffSection.classList.remove("visible");
       adminArea.classList.remove("visible");
       staffRoleBadge.textContent = "Staff";
+      renderPrayerRequests([]);
+      prayerRequestsMessage.textContent = "";
     }
 
     function setLoggedIn(role) {
@@ -552,6 +610,12 @@
       staffRoleBadge.textContent = label;
       staffSection.classList.add("visible");
       adminArea.classList.toggle("visible", role === "admin");
+      if (role === "admin") {
+        loadPrayerRequests();
+      } else {
+        renderPrayerRequests([]);
+        prayerRequestsMessage.textContent = "";
+      }
     }
 
     function openLoginModal() {
@@ -655,6 +719,44 @@
       } catch (error) {
         clearSessionToken();
         setLoggedOut();
+      }
+    }
+
+    function escapeHTML(value) {
+      const replacements = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      };
+      return String(value || "").replace(/[&<>"']/g, (character) => replacements[character]);
+    }
+
+    function renderPrayerRequests(prayerRequests) {
+      if (!Array.isArray(prayerRequests) || prayerRequests.length === 0) {
+        prayerRequestsList.innerHTML = `<li class="prayer-request-empty">No shareable prayer requests are available.</li>`;
+        return;
+      }
+
+      prayerRequestsList.innerHTML = prayerRequests.map((request) => (
+        `<li class="prayer-request-card">${escapeHTML(request)}</li>`
+      )).join("");
+    }
+
+    async function loadPrayerRequests() {
+      prayerRequestsMessage.style.color = "#a8f0a8";
+      prayerRequestsMessage.textContent = "Loading prayer requests...";
+      try {
+        const data = await staffBackendRequest(STAFF_BACKEND_ACTIONS.prayerRequests, {
+          token: currentSessionToken()
+        });
+        renderPrayerRequests(data.prayerRequests || []);
+        prayerRequestsMessage.textContent = "";
+      } catch (error) {
+        prayerRequestsMessage.style.color = "#ff8c8c";
+        prayerRequestsMessage.textContent = error.message;
+        renderPrayerRequests([]);
       }
     }
 
