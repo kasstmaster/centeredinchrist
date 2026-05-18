@@ -253,7 +253,8 @@
       font-size: 13px;
     }
 
-    .prayer-action-button.deny {
+    .prayer-action-button.deny,
+    .public-prayer-remove-button {
       background: transparent;
       color: #fff;
       border: 1px solid #666;
@@ -288,8 +289,25 @@
       color: #eee;
       font-size: 14px;
       line-height: 1.45;
-      white-space: pre-wrap;
       word-break: break-word;
+    }
+
+    .public-prayer-text {
+      white-space: pre-wrap;
+    }
+
+    .public-prayer-actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .public-prayer-remove-button {
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     .prayer-request-empty {
@@ -483,6 +501,7 @@
     <div id="publicPrayerRequests" class="public-prayer-scroll" aria-live="polite">
       <p class="prayer-request-empty">Loading prayer requests...</p>
     </div>
+    <div id="publicPrayerRequestsMessage" class="auth-message" aria-live="polite"></div>
   </section>
 
   <h1 style="margin-top: 20px;">
@@ -556,6 +575,7 @@
       prayerRequests: "prayerRequests",
       moderatePrayerRequest: "moderatePrayerRequest",
       publicPrayerRequests: "publicPrayerRequests",
+      removePublicPrayerRequest: "removePublicPrayerRequest",
       liveStatus: "liveStatus"
     });
 
@@ -650,10 +670,15 @@
     const prayerRequestsMessage = document.getElementById("prayerRequestsMessage");
     const prayerRequestsList = document.getElementById("prayerRequestsList");
     const publicPrayerRequests = document.getElementById("publicPrayerRequests");
+    const publicPrayerRequestsMessage = document.getElementById("publicPrayerRequestsMessage");
+    let staffLoggedIn = false;
+    let currentPublicPrayerRequests = [];
 
     bottom.innerHTML = bottomHTML;
 
     function setLoggedOut() {
+      staffLoggedIn = false;
+      renderPublicPrayerRequests(currentPublicPrayerRequests);
       loginButton.style.display = "inline-block";
       accountControls.style.display = "none";
       accountMenu.classList.remove("open");
@@ -665,6 +690,8 @@
     }
 
     function setLoggedIn(role) {
+      staffLoggedIn = true;
+      renderPublicPrayerRequests(currentPublicPrayerRequests);
       const label = role === "admin" ? "Admin" : "Staff";
       loginButton.style.display = "none";
       accountControls.style.display = "block";
@@ -827,14 +854,24 @@
     }
 
     function renderPublicPrayerRequests(prayerRequests) {
-      if (!Array.isArray(prayerRequests) || prayerRequests.length === 0) {
+      currentPublicPrayerRequests = Array.isArray(prayerRequests) ? prayerRequests : [];
+      if (currentPublicPrayerRequests.length === 0) {
         publicPrayerRequests.innerHTML = `<p class="prayer-request-empty">No approved prayer requests are available yet.</p>`;
         return;
       }
 
-      publicPrayerRequests.innerHTML = prayerRequests.map((request) => (
-        `<article class="public-prayer-card">${escapeHTML(prayerRequestText(request))}</article>`
-      )).join("");
+      publicPrayerRequests.innerHTML = currentPublicPrayerRequests.map((request) => {
+        const id = escapeHTML(prayerRequestId(request));
+        const removeButton = staffLoggedIn && id
+          ? `<div class="public-prayer-actions"><button type="button" class="public-prayer-remove-button" data-public-prayer-remove="true">Remove</button></div>`
+          : "";
+        return `
+          <article class="public-prayer-card" data-public-prayer-request-id="${id}">
+            <div class="public-prayer-text">${escapeHTML(prayerRequestText(request))}</div>
+            ${removeButton}
+          </article>
+        `;
+      }).join("");
     }
 
     async function loadPrayerRequests() {
@@ -857,8 +894,32 @@
       try {
         const data = await staffBackendRequest(STAFF_BACKEND_ACTIONS.publicPrayerRequests);
         renderPublicPrayerRequests(data.prayerRequests || []);
+        publicPrayerRequestsMessage.textContent = "";
       } catch (error) {
         publicPrayerRequests.innerHTML = `<p class="prayer-request-empty">Prayer requests are unavailable right now.</p>`;
+      }
+    }
+
+    async function removePublicPrayerRequest(requestId, button) {
+      publicPrayerRequestsMessage.style.color = "#a8f0a8";
+      publicPrayerRequestsMessage.textContent = "Removing prayer request...";
+      if (button) {
+        button.disabled = true;
+      }
+      try {
+        await staffBackendRequest(STAFF_BACKEND_ACTIONS.removePublicPrayerRequest, {
+          token: currentSessionToken(),
+          requestId
+        });
+        await loadPublicPrayerRequests();
+        publicPrayerRequestsMessage.style.color = "#a8f0a8";
+        publicPrayerRequestsMessage.textContent = "Prayer request removed.";
+      } catch (error) {
+        publicPrayerRequestsMessage.style.color = "#ff8c8c";
+        publicPrayerRequestsMessage.textContent = error.message;
+        if (button) {
+          button.disabled = false;
+        }
       }
     }
 
@@ -910,6 +971,18 @@
         closeLoginModal();
       } catch (error) {
         loginError.textContent = error.message;
+      }
+    });
+
+    publicPrayerRequests.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-public-prayer-remove]");
+      if (!button) {
+        return;
+      }
+      const card = button.closest("[data-public-prayer-request-id]");
+      const requestId = card ? card.dataset.publicPrayerRequestId : "";
+      if (requestId) {
+        removePublicPrayerRequest(requestId, button);
       }
     });
 
