@@ -425,16 +425,16 @@ function moderatePrayerRequest_(request) {
     return { ok: false, error: 'Choose approve or deny.' };
   }
 
-  const prayerRequest = sourcePrayerRequests_().filter(function(item) {
-    return item.id === requestId;
-  })[0];
-  if (!prayerRequest) {
-    return { ok: false, error: 'Prayer request was not found.' };
-  }
-
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
+    const prayerRequest = sourcePrayerRequests_().filter(function(item) {
+      return item.id === requestId;
+    })[0];
+    if (!prayerRequest) {
+      return { ok: false, error: 'Prayer request was not found.' };
+    }
+
     const sheet = prayerModerationSheet_();
     const moderation = prayerModerationMap_();
     const now = new Date().toISOString();
@@ -448,6 +448,10 @@ function moderatePrayerRequest_(request) {
     } else {
       sheet.appendRow([requestId, status, prayerRequest.text, now, now]);
     }
+
+    if (status === PRAYER_STATUS_APPROVED) {
+      deleteSourcePrayerRequest_(prayerRequest);
+    }
   } finally {
     lock.releaseLock();
   }
@@ -457,16 +461,48 @@ function moderatePrayerRequest_(request) {
 }
 
 function publicPrayerRequests_() {
-  const moderation = prayerModerationMap_();
-  const prayerRequests = sourcePrayerRequests_().filter(function(prayerRequest) {
-    return moderation[prayerRequest.id] && moderation[prayerRequest.id].status === PRAYER_STATUS_APPROVED;
-  });
+  const prayerRequests = approvedPrayerRequests_();
 
   return { ok: true, prayerRequests: prayerRequests };
 }
 
+function approvedPrayerRequests_() {
+  const sheet = prayerModerationSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return [];
+  }
+
+  const rows = sheet.getRange(2, 1, lastRow - 1, PRAYER_MODERATION_HEADERS.length).getValues();
+  const prayerRequests = [];
+  rows.forEach(function(row) {
+    const requestId = String(row[0] || '');
+    const status = String(row[1] || '');
+    const requestText = String(row[2] || '').trim();
+    if (requestId && status === PRAYER_STATUS_APPROVED && requestText) {
+      prayerRequests.push({
+        id: requestId,
+        text: requestText,
+        approvedAt: row[4] || row[3] || ''
+      });
+    }
+  });
+
+  prayerRequests.sort(function(left, right) {
+    return Date.parse(right.approvedAt) - Date.parse(left.approvedAt);
+  });
+  return prayerRequests;
+}
+
 function prayerRequestId_(rowNumber, requestText) {
   return sha256_(String(rowNumber) + '\n' + String(requestText || ''));
+}
+
+function deleteSourcePrayerRequest_(prayerRequest) {
+  const rowNumber = Number(prayerRequest && prayerRequest.rowNumber);
+  if (rowNumber >= 2) {
+    prayerRequestsSheet_().deleteRow(rowNumber);
+  }
 }
 
 function normalizeHeader_(value) {

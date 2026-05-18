@@ -8,8 +8,8 @@ The website remains static-hostable. Authentication, password updates, admin pra
 2. Replace the current test code with the full contents of `apps-script-backend.js` from this repository.
 3. `apps-script-backend.js` includes the current spreadsheet ID as a fallback. If you need to point the backend at a different spreadsheet, set `SHEET_ID` as a Script Property or update `FALLBACK_SHEET_ID` inside Apps Script only.
 4. The admin Prayer Requests moderation list reads the `Form Responses` tab. It displays only rows where `Is this confidential?` exactly equals `No, please share with as many people as possible`, using the same row's `Please provide as much detailed information as possible` value.
-5. Approving or denying a prayer request does **not** delete or edit the `Form Responses` tab. The backend creates and maintains a hidden `PrayerModeration` tab with `requestId`, `status`, `requestText`, `createdAt`, and `updatedAt` columns. Denied requests disappear from the admin moderation list only; approved requests also appear in the public Prayer Requests section.
-6. The public Prayer Requests section loads approved requests for every visitor without requiring staff/admin login. Requests are ordered newest to oldest based on their row order in `Form Responses`.
+5. The backend creates and maintains a hidden `PrayerModeration` tab with `requestId`, `status`, `requestText`, `createdAt`, and `updatedAt` columns. Denied requests disappear from the admin moderation list only. Approved requests are copied into this hidden moderation tab, removed from the source `Form Responses` tab, and shown in the public Prayer Requests section.
+6. The public Prayer Requests section loads approved requests for every visitor without requiring staff/admin login. Requests are ordered newest to oldest based on when they were approved in `PrayerModeration`, so they continue displaying after the original form response row is removed.
 7. Optional for stream status: add Script Properties `YOUTUBE_API_KEY` and `YOUTUBE_CHANNEL_ID`. If omitted, the stream status safely falls back to offline.
 
 ## 2. Deploy as a Web App
