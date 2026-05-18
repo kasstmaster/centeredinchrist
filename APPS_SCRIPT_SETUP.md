@@ -1,14 +1,16 @@
 # Google Apps Script staff/admin backend setup
 
-The website remains static-hostable. Authentication, password updates, and admin prayer request loading are handled by a Google Apps Script Web App connected to the Google Sheet.
+The website remains static-hostable. Authentication, password updates, admin prayer moderation, approved public prayer request loading, and stream status are handled by a Google Apps Script Web App connected to the Google Sheet.
 
 ## 1. Paste the backend code
 
 1. Open your Google Apps Script project that is connected to the Google Sheet.
 2. Replace the current test code with the full contents of `apps-script-backend.js` from this repository.
 3. `apps-script-backend.js` includes the current spreadsheet ID as a fallback. If you need to point the backend at a different spreadsheet, set `SHEET_ID` as a Script Property or update `FALLBACK_SHEET_ID` inside Apps Script only.
-4. The admin Prayer Requests section reads the `Form Responses` tab. It displays rows where `Is this confidential?` exactly equals `No, please share with as many people as possible`, using the same row's `Please provide as much detailed information as possible` value.
-5. Optional for stream status: add Script Properties `YOUTUBE_API_KEY` and `YOUTUBE_CHANNEL_ID`. If omitted, the stream status safely falls back to offline.
+4. The admin Prayer Requests moderation list reads the `Form Responses` tab. It displays only rows where `Is this confidential?` exactly equals `No, please share with as many people as possible`, using the same row's `Please provide as much detailed information as possible` value.
+5. Approving or denying a prayer request does **not** delete or edit the `Form Responses` tab. The backend creates and maintains a hidden `PrayerModeration` tab with `requestId`, `status`, `requestText`, `createdAt`, and `updatedAt` columns. Denied requests disappear from the admin moderation list only; approved requests also appear in the public Prayer Requests section.
+6. The public Prayer Requests section loads approved requests for every visitor without requiring staff/admin login. Requests are ordered newest to oldest based on their row order in `Form Responses`.
+7. Optional for stream status: add Script Properties `YOUTUBE_API_KEY` and `YOUTUBE_CHANNEL_ID`. If omitted, the stream status safely falls back to offline.
 
 ## 2. Deploy as a Web App
 
@@ -29,7 +31,7 @@ const STAFF_BACKEND_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
 with the copied `/exec` Web App URL.
 
-The Web App URL is not a password or Sheet ID. It is safe to place in the static website because all password checks and Sheet access happen inside Apps Script.
+The Web App URL is not a password or Sheet ID. It is safe to place in the static website because all password checks, moderation writes, and Sheet access happen inside Apps Script.
 
 ## 4. Test the Web App JSON response
 

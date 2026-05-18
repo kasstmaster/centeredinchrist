@@ -17,6 +17,10 @@ const PRAYER_REQUESTS_SHEET_NAME = 'Form Responses';
 const PRAYER_REQUEST_TEXT_HEADER = 'Please provide as much detailed information as possible';
 const PRAYER_REQUEST_CONFIDENTIAL_HEADER = 'Is this confidential?';
 const PRAYER_REQUEST_SHARE_VALUE = 'No, please share with as many people as possible';
+const PRAYER_MODERATION_SHEET_NAME = 'PrayerModeration';
+const PRAYER_MODERATION_HEADERS = ['requestId', 'status', 'requestText', 'createdAt', 'updatedAt'];
+const PRAYER_STATUS_APPROVED = 'approved';
+const PRAYER_STATUS_DENIED = 'denied';
 const SESSION_SHEET_NAME = 'StaffSessions';
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const DEFAULT_YOUTUBE_CHANNEL_ID = 'UCubyomJfZo_C11A5fxRWnGw';
@@ -56,6 +60,12 @@ function handleRequest_(e) {
     }
     if (action === 'prayerRequests') {
       return json_(prayerRequests_(request));
+    }
+    if (action === 'moderatePrayerRequest') {
+      return json_(moderatePrayerRequest_(request));
+    }
+    if (action === 'publicPrayerRequests') {
+      return json_(publicPrayerRequests_());
     }
     if (action === 'liveStatus') {
       return json_(liveStatus_());
@@ -145,6 +155,17 @@ function prayerRequestsSheet_() {
   const sheet = spreadsheet_().getSheetByName(PRAYER_REQUESTS_SHEET_NAME);
   if (!sheet) {
     throw new Error('Prayer requests sheet was not found.');
+  }
+  return sheet;
+}
+
+function prayerModerationSheet_() {
+  const spreadsheet = spreadsheet_();
+  let sheet = spreadsheet.getSheetByName(PRAYER_MODERATION_SHEET_NAME);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(PRAYER_MODERATION_SHEET_NAME);
+    sheet.appendRow(PRAYER_MODERATION_HEADERS);
+    sheet.hideSheet();
   }
   return sheet;
 }
@@ -303,21 +324,24 @@ function updatePasswords_(request) {
   }
 }
 
-function prayerRequests_(request) {
+function adminSession_(request, logMessage) {
   const sessionResult = validateSession_(request.token);
   if (!sessionResult.authenticated) {
     return { ok: false, error: 'Please log in again.' };
   }
   if (sessionResult.role !== 'admin') {
-    log_('non-admin prayer request access rejected', { role: sessionResult.role });
+    log_(logMessage, { role: sessionResult.role });
     return { ok: false, error: 'Admin access is required.' };
   }
+  return { ok: true };
+}
 
+function sourcePrayerRequests_() {
   const sheet = prayerRequestsSheet_();
   const lastRow = sheet.getLastRow();
   const lastColumn = sheet.getLastColumn();
   if (lastRow < 2 || lastColumn < 1) {
-    return { ok: true, prayerRequests: [] };
+    return [];
   }
 
   const values = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
@@ -332,15 +356,117 @@ function prayerRequests_(request) {
   }
 
   const prayerRequests = [];
-  values.slice(1).forEach(function(row) {
+  values.slice(1).forEach(function(row, index) {
+    const rowNumber = index + 2;
     const confidentialAnswer = String(row[confidentialIndex] || '').trim();
     const requestText = String(row[requestIndex] || '').trim();
     if (confidentialAnswer === PRAYER_REQUEST_SHARE_VALUE && requestText) {
-      prayerRequests.push(requestText);
+      prayerRequests.push({
+        id: prayerRequestId_(rowNumber, requestText),
+        text: requestText,
+        rowNumber: rowNumber
+      });
     }
   });
 
+  return prayerRequests.reverse();
+}
+
+function prayerModerationMap_() {
+  const sheet = prayerModerationSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return {};
+  }
+
+  const rows = sheet.getRange(2, 1, lastRow - 1, PRAYER_MODERATION_HEADERS.length).getValues();
+  const moderation = {};
+  rows.forEach(function(row, index) {
+    const requestId = String(row[0] || '');
+    if (requestId) {
+      moderation[requestId] = {
+        rowNumber: index + 2,
+        status: String(row[1] || ''),
+        text: String(row[2] || ''),
+        createdAt: row[3],
+        updatedAt: row[4]
+      };
+    }
+  });
+  return moderation;
+}
+
+function prayerRequests_(request) {
+  const session = adminSession_(request, 'non-admin prayer request access rejected');
+  if (!session.ok) {
+    return session;
+  }
+
+  const moderation = prayerModerationMap_();
+  const prayerRequests = sourcePrayerRequests_().filter(function(prayerRequest) {
+    return !moderation[prayerRequest.id];
+  });
+
   return { ok: true, prayerRequests: prayerRequests };
+}
+
+function moderatePrayerRequest_(request) {
+  const session = adminSession_(request, 'non-admin prayer moderation rejected');
+  if (!session.ok) {
+    return session;
+  }
+
+  const requestId = String(request.requestId || '').trim();
+  const status = String(request.status || '').trim().toLowerCase();
+  if (!requestId) {
+    return { ok: false, error: 'Prayer request ID is required.' };
+  }
+  if (status !== PRAYER_STATUS_APPROVED && status !== PRAYER_STATUS_DENIED) {
+    return { ok: false, error: 'Choose approve or deny.' };
+  }
+
+  const prayerRequest = sourcePrayerRequests_().filter(function(item) {
+    return item.id === requestId;
+  })[0];
+  if (!prayerRequest) {
+    return { ok: false, error: 'Prayer request was not found.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = prayerModerationSheet_();
+    const moderation = prayerModerationMap_();
+    const now = new Date().toISOString();
+    if (moderation[requestId]) {
+      sheet.getRange(moderation[requestId].rowNumber, 2, 1, 4).setValues([[
+        status,
+        prayerRequest.text,
+        moderation[requestId].createdAt || now,
+        now
+      ]]);
+    } else {
+      sheet.appendRow([requestId, status, prayerRequest.text, now, now]);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  log_('prayer request moderated', { requestId: requestId, status: status });
+  return { ok: true, success: true, status: status };
+}
+
+function publicPrayerRequests_() {
+  const moderation = prayerModerationMap_();
+  const prayerRequests = sourcePrayerRequests_().filter(function(prayerRequest) {
+    return moderation[prayerRequest.id] && moderation[prayerRequest.id].status === PRAYER_STATUS_APPROVED;
+  });
+
+  return { ok: true, prayerRequests: prayerRequests };
+}
+
+function prayerRequestId_(rowNumber, requestText) {
+  return sha256_(String(rowNumber) + '\n' + String(requestText || ''));
 }
 
 function normalizeHeader_(value) {

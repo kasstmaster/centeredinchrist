@@ -41,7 +41,8 @@
 
     .auth-button,
     .auth-submit,
-    .password-button {
+    .password-button,
+    .prayer-action-button {
       background: #fff;
       color: #000;
       border: none;
@@ -240,6 +241,57 @@
       line-height: 1.5;
     }
 
+    .prayer-request-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .prayer-action-button {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .prayer-action-button.deny {
+      background: transparent;
+      color: #fff;
+      border: 1px solid #666;
+    }
+
+    .public-prayer-section {
+      width: min(900px, calc(100% - 20px));
+      margin: 28px auto 0;
+      text-align: left;
+    }
+
+    .public-prayer-section h1 {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .public-prayer-scroll {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 4px 4px 16px;
+      scrollbar-color: #fff #222;
+    }
+
+    .public-prayer-card {
+      flex: 0 0 min(260px, 78vw);
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+      color: #eee;
+      font-size: 14px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
     .prayer-request-empty {
       color: #ccc;
       font-size: 14px;
@@ -426,6 +478,13 @@
     <br>Centered in Christ Ministries
   </div>
 
+  <section class="public-prayer-section" aria-labelledby="publicPrayerTitle">
+    <h1 id="publicPrayerTitle">Prayer Requests</h1>
+    <div id="publicPrayerRequests" class="public-prayer-scroll" aria-live="polite">
+      <p class="prayer-request-empty">Loading prayer requests...</p>
+    </div>
+  </section>
+
   <h1 style="margin-top: 20px;">
     <br>Online Services
   </h1>
@@ -495,6 +554,8 @@
       logout: "logout",
       updatePasswords: "updatePasswords",
       prayerRequests: "prayerRequests",
+      moderatePrayerRequest: "moderatePrayerRequest",
+      publicPrayerRequests: "publicPrayerRequests",
       liveStatus: "liveStatus"
     });
 
@@ -588,6 +649,7 @@
     const passwordMessage = document.getElementById("passwordMessage");
     const prayerRequestsMessage = document.getElementById("prayerRequestsMessage");
     const prayerRequestsList = document.getElementById("prayerRequestsList");
+    const publicPrayerRequests = document.getElementById("publicPrayerRequests");
 
     bottom.innerHTML = bottomHTML;
 
@@ -733,14 +795,45 @@
       return String(value || "").replace(/[&<>"']/g, (character) => replacements[character]);
     }
 
+    function prayerRequestText(request) {
+      if (request && typeof request === "object") {
+        return request.text || "";
+      }
+      return request || "";
+    }
+
+    function prayerRequestId(request) {
+      return request && typeof request === "object" ? request.id || "" : "";
+    }
+
     function renderPrayerRequests(prayerRequests) {
       if (!Array.isArray(prayerRequests) || prayerRequests.length === 0) {
-        prayerRequestsList.innerHTML = `<li class="prayer-request-empty">No shareable prayer requests are available.</li>`;
+        prayerRequestsList.innerHTML = `<li class="prayer-request-empty">No pending shareable prayer requests are available.</li>`;
         return;
       }
 
-      prayerRequestsList.innerHTML = prayerRequests.map((request) => (
-        `<li class="prayer-request-card">${escapeHTML(request)}</li>`
+      prayerRequestsList.innerHTML = prayerRequests.map((request) => {
+        const id = escapeHTML(prayerRequestId(request));
+        return `
+          <li class="prayer-request-card" data-prayer-request-id="${id}">
+            <div>${escapeHTML(prayerRequestText(request))}</div>
+            <div class="prayer-request-actions">
+              <button type="button" class="prayer-action-button deny" data-prayer-status="denied">Deny</button>
+              <button type="button" class="prayer-action-button" data-prayer-status="approved">Approve</button>
+            </div>
+          </li>
+        `;
+      }).join("");
+    }
+
+    function renderPublicPrayerRequests(prayerRequests) {
+      if (!Array.isArray(prayerRequests) || prayerRequests.length === 0) {
+        publicPrayerRequests.innerHTML = `<p class="prayer-request-empty">No approved prayer requests are available yet.</p>`;
+        return;
+      }
+
+      publicPrayerRequests.innerHTML = prayerRequests.map((request) => (
+        `<article class="public-prayer-card">${escapeHTML(prayerRequestText(request))}</article>`
       )).join("");
     }
 
@@ -757,6 +850,41 @@
         prayerRequestsMessage.style.color = "#ff8c8c";
         prayerRequestsMessage.textContent = error.message;
         renderPrayerRequests([]);
+      }
+    }
+
+    async function loadPublicPrayerRequests() {
+      try {
+        const data = await staffBackendRequest(STAFF_BACKEND_ACTIONS.publicPrayerRequests);
+        renderPublicPrayerRequests(data.prayerRequests || []);
+      } catch (error) {
+        publicPrayerRequests.innerHTML = `<p class="prayer-request-empty">Prayer requests are unavailable right now.</p>`;
+      }
+    }
+
+    async function moderatePrayerRequest(requestId, status, button) {
+      prayerRequestsMessage.style.color = "#a8f0a8";
+      prayerRequestsMessage.textContent = status === "approved" ? "Approving prayer request..." : "Denying prayer request...";
+      if (button) {
+        button.disabled = true;
+      }
+      try {
+        await staffBackendRequest(STAFF_BACKEND_ACTIONS.moderatePrayerRequest, {
+          token: currentSessionToken(),
+          requestId,
+          status
+        });
+        await Promise.all([loadPrayerRequests(), loadPublicPrayerRequests()]);
+        prayerRequestsMessage.style.color = "#a8f0a8";
+        prayerRequestsMessage.textContent = status === "approved"
+          ? "Prayer request approved."
+          : "Prayer request denied.";
+      } catch (error) {
+        prayerRequestsMessage.style.color = "#ff8c8c";
+        prayerRequestsMessage.textContent = error.message;
+        if (button) {
+          button.disabled = false;
+        }
       }
     }
 
@@ -782,6 +910,19 @@
         closeLoginModal();
       } catch (error) {
         loginError.textContent = error.message;
+      }
+    });
+
+    prayerRequestsList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-prayer-status]");
+      if (!button) {
+        return;
+      }
+      const card = button.closest("[data-prayer-request-id]");
+      const requestId = card ? card.dataset.prayerRequestId : "";
+      const status = button.dataset.prayerStatus;
+      if (requestId && status) {
+        moderatePrayerRequest(requestId, status, button);
       }
     });
 
@@ -876,9 +1017,11 @@
     }
         
     checkStaffSession();
+    loadPublicPrayerRequests();
     checkLive();
     setInterval(checkLive, 30000);
     setInterval(checkStaffSession, 60000);
+    setInterval(loadPublicPrayerRequests, 60000);
   </script>
 
   <div id="modal" style="
