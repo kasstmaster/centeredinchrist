@@ -18,6 +18,7 @@
     }
     
     .header {
+      position: relative;
       width: 100%;
       padding: 25px 0;
       border-bottom: 1px solid #333;
@@ -25,6 +26,187 @@
       font-size: 28px;
       letter-spacing: 3px;
       text-transform: uppercase;
+      box-sizing: border-box;
+    }
+
+    .auth-panel {
+      position: absolute;
+      top: 18px;
+      right: 15px;
+      font-family: Arial, sans-serif;
+      letter-spacing: normal;
+      text-transform: none;
+      z-index: 2000;
+    }
+
+    .auth-button,
+    .auth-submit,
+    .password-button {
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .auth-menu {
+      display: none;
+      position: absolute;
+      top: 42px;
+      right: 0;
+      min-width: 140px;
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+
+    .auth-menu.open {
+      display: block;
+    }
+
+    .auth-menu button {
+      width: 100%;
+      background: transparent;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .auth-menu button:hover {
+      background: #242424;
+    }
+
+    .login-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 6000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .login-card,
+    .staff-section {
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 16px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.45);
+    }
+
+    .login-card {
+      width: min(100%, 380px);
+      padding: 24px;
+      text-align: left;
+      box-sizing: border-box;
+    }
+
+    .login-card h2,
+    .staff-section h1,
+    .staff-section h2 {
+      margin-top: 0;
+    }
+
+    .login-card label,
+    .password-form label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .login-card input,
+    .password-form input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      background: #0e0e0e;
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .login-actions,
+    .password-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .secondary-button {
+      background: transparent;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .auth-error {
+      min-height: 20px;
+      color: #ff8c8c;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .staff-section {
+      display: none;
+      width: min(600px, calc(100% - 20px));
+      margin: 30px auto;
+      padding: 24px;
+      box-sizing: border-box;
+      text-align: left;
+    }
+
+    .staff-section.visible {
+      display: block;
+    }
+
+    .staff-role-badge {
+      display: inline-block;
+      background: #fff;
+      color: #000;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .admin-area {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #333;
+    }
+
+    .admin-area.visible {
+      display: block;
+    }
+
+    .password-form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .auth-message {
+      min-height: 20px;
+      font-size: 14px;
+      color: #a8f0a8;
     }
     
     h1 {
@@ -84,7 +266,13 @@
       }
     
       .header {
-        font-size: 24px;
+        font-size: 22px;
+        padding: 55px 10px 20px;
+      }
+
+      .auth-panel {
+        top: 12px;
+        right: 10px;
       }
     
       iframe {
@@ -183,6 +371,15 @@
   </div>
 
   <div class="header">
+    <div class="auth-panel">
+      <button id="loginButton" class="auth-button" onclick="openLoginModal()">Login</button>
+      <div id="accountControls" style="display: none; position: relative;">
+        <button id="accountButton" class="auth-button" onclick="toggleAccountMenu()">Staff</button>
+        <div id="accountMenu" class="auth-menu">
+          <button onclick="logoutStaff()">Log Out</button>
+        </div>
+      </div>
+    </div>
     <br>Centered in Christ Ministries
   </div>
 
@@ -194,11 +391,50 @@
     <strong>Live Stream Services</strong><br>Watch here or on YouTube<br>every Sunday at 2:00PM PST
   </h2>
   <div id="topContent"></div>
+
+  <section id="staffSection" class="staff-section" aria-live="polite">
+    <span id="staffRoleBadge" class="staff-role-badge">Staff</span>
+    <h1>Staff</h1>
+    <p>This private staff section is available after a valid staff or admin login.</p>
+
+    <div id="adminArea" class="admin-area">
+      <h2>Admin</h2>
+      <p>Update staff/admin passwords. Password changes are saved privately to the Google Sheet.</p>
+      <form id="passwordForm" class="password-form">
+        <div>
+          <label for="adminPasswordInput">New ADMIN password</label>
+          <input id="adminPasswordInput" name="adminPassword" type="password" autocomplete="new-password">
+        </div>
+        <div>
+          <label for="staffPasswordInput">New STAFF password</label>
+          <input id="staffPasswordInput" name="staffPassword" type="password" autocomplete="new-password">
+        </div>
+        <div class="password-actions">
+          <button type="submit" class="password-button">Update Passwords</button>
+        </div>
+        <div id="passwordMessage" class="auth-message"></div>
+      </form>
+    </div>
+  </section>
+
   <div id="bottomContent" style="padding: 0 10px;"></div>
 
+  <div id="loginModal" class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <form id="loginForm" class="login-card">
+      <h2 id="loginTitle">Staff Login</h2>
+      <label for="passwordInput">Password</label>
+      <input id="passwordInput" name="password" type="password" autocomplete="current-password" required>
+      <div id="loginError" class="auth-error"></div>
+      <div class="login-actions">
+        <button type="button" class="secondary-button" onclick="closeLoginModal()">Cancel</button>
+        <button type="submit" class="auth-submit">Login</button>
+      </div>
+    </form>
+  </div>
+
   <script>
-    const API_KEY = "AIzaSyA7bU3MKozwte7W_jOXq-uz8ccBmddkp28";
-    const CHANNEL_ID = "UCubyomJfZo_C11A5fxRWnGw";
+    const STAFF_BACKEND_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+    const STAFF_SESSION_TOKEN_KEY = "cicStaffSessionToken";
 
     const bottomHTML = `
       <div style="margin-top: 25px;">
@@ -275,19 +511,185 @@
     `;
 
     const bottom = document.getElementById("bottomContent");
+    const loginButton = document.getElementById("loginButton");
+    const accountControls = document.getElementById("accountControls");
+    const accountButton = document.getElementById("accountButton");
+    const accountMenu = document.getElementById("accountMenu");
+    const loginModal = document.getElementById("loginModal");
+    const loginForm = document.getElementById("loginForm");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginError = document.getElementById("loginError");
+    const staffSection = document.getElementById("staffSection");
+    const staffRoleBadge = document.getElementById("staffRoleBadge");
+    const adminArea = document.getElementById("adminArea");
+    const passwordForm = document.getElementById("passwordForm");
+    const passwordMessage = document.getElementById("passwordMessage");
+
     bottom.innerHTML = bottomHTML;
+
+    function setLoggedOut() {
+      loginButton.style.display = "inline-block";
+      accountControls.style.display = "none";
+      accountMenu.classList.remove("open");
+      staffSection.classList.remove("visible");
+      adminArea.classList.remove("visible");
+      staffRoleBadge.textContent = "Staff";
+    }
+
+    function setLoggedIn(role) {
+      const label = role === "admin" ? "Admin" : "Staff";
+      loginButton.style.display = "none";
+      accountControls.style.display = "block";
+      accountButton.textContent = label;
+      staffRoleBadge.textContent = label;
+      staffSection.classList.add("visible");
+      adminArea.classList.toggle("visible", role === "admin");
+    }
+
+    function openLoginModal() {
+      loginError.textContent = "";
+      loginModal.style.display = "flex";
+      setTimeout(() => passwordInput.focus(), 0);
+    }
+
+    function closeLoginModal() {
+      loginModal.style.display = "none";
+      loginForm.reset();
+      loginError.textContent = "";
+    }
+
+    function toggleAccountMenu() {
+      accountMenu.classList.toggle("open");
+    }
+
+    function backendConfigured() {
+      return STAFF_BACKEND_URL && !STAFF_BACKEND_URL.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE");
+    }
+
+    function saveSessionToken(token) {
+      if (token) {
+        localStorage.setItem(STAFF_SESSION_TOKEN_KEY, token);
+      }
+    }
+
+    function currentSessionToken() {
+      return localStorage.getItem(STAFF_SESSION_TOKEN_KEY) || "";
+    }
+
+    function clearSessionToken() {
+      localStorage.removeItem(STAFF_SESSION_TOKEN_KEY);
+    }
+
+    async function staffBackendRequest(action, payload = {}) {
+      if (!backendConfigured()) {
+        throw new Error("Staff login is not configured yet.");
+      }
+
+      const body = new URLSearchParams({ action, ...payload });
+      const response = await fetch(STAFF_BACKEND_URL, {
+        method: "POST",
+        body
+      });
+      const data = await response.json();
+      if (!data.ok) {
+        throw new Error(data.error || "Request failed.");
+      }
+      return data;
+    }
+
+    async function checkStaffSession() {
+      if (!backendConfigured()) {
+        setLoggedOut();
+        return;
+      }
+
+      const token = currentSessionToken();
+      if (!token) {
+        setLoggedOut();
+        return;
+      }
+
+      try {
+        const data = await staffBackendRequest("session", { token });
+        if (data.authenticated) {
+          setLoggedIn(data.role);
+        } else {
+          clearSessionToken();
+          setLoggedOut();
+        }
+      } catch (error) {
+        clearSessionToken();
+        setLoggedOut();
+      }
+    }
+
+    async function logoutStaff() {
+      const token = currentSessionToken();
+      try {
+        if (token && backendConfigured()) {
+          await staffBackendRequest("logout", { token });
+        }
+      } finally {
+        clearSessionToken();
+        setLoggedOut();
+      }
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      loginError.textContent = "";
+      try {
+        const data = await staffBackendRequest("login", { password: passwordInput.value });
+        saveSessionToken(data.token);
+        setLoggedIn(data.role);
+        closeLoginModal();
+      } catch (error) {
+        loginError.textContent = error.message;
+      }
+    });
+
+    passwordForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      passwordMessage.style.color = "#a8f0a8";
+      passwordMessage.textContent = "";
+      try {
+        const data = await staffBackendRequest("updatePasswords", {
+          token: currentSessionToken(),
+          adminPassword: document.getElementById("adminPasswordInput").value,
+          staffPassword: document.getElementById("staffPasswordInput").value
+        });
+        passwordForm.reset();
+        passwordMessage.textContent = data.message || "Password updated.";
+        if (data.loggedOut) {
+          clearSessionToken();
+          setLoggedOut();
+        }
+      } catch (error) {
+        passwordMessage.style.color = "#ff8c8c";
+        passwordMessage.textContent = error.message;
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!accountControls.contains(event.target)) {
+        accountMenu.classList.remove("open");
+      }
+    });
     
     async function checkLive() {
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
+      let data = { live: false };
+      try {
+        data = await staffBackendRequest("liveStatus");
+      } catch (error) {
+        data = { live: false };
+      }
     
       const top = document.getElementById("topContent");
       const status = document.getElementById("status");
       const indicator = document.getElementById("liveIndicator");
     
-      if (data.items && data.items.length > 0) {
-        const videoId = data.items[0].id.videoId;
+      if (data.live && data.videoId) {
+        const videoId = data.videoId;
     
         status.textContent = "🟢 Now Streaming";
         indicator.textContent = "🟢 NOW STREAMING";
@@ -336,8 +738,10 @@
       document.getElementById("modal").style.display = "none";
     }
         
+    checkStaffSession();
     checkLive();
     setInterval(checkLive, 30000);
+    setInterval(checkStaffSession, 60000);
   </script>
 
   <div id="modal" style="
