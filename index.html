@@ -435,6 +435,14 @@
   <script>
     const STAFF_BACKEND_URL = "https://script.google.com/macros/s/AKfycbwnSuaTqztrmPMbacJGnUtogRn9U5KmUP3-fsl32Y5W4pEyzITr5ZKRWukhWS3x0gJr/exec";
     const STAFF_SESSION_TOKEN_KEY = "cicStaffSessionToken";
+    const STAFF_BACKEND_ACTIONS = Object.freeze({
+      ping: "ping",
+      login: "login",
+      session: "session",
+      logout: "logout",
+      updatePasswords: "updatePasswords",
+      liveStatus: "liveStatus"
+    });
 
     const bottomHTML = `
       <div style="margin-top: 25px;">
@@ -602,9 +610,14 @@
         throw new Error("Staff login is not configured yet.");
       }
 
+      const body = new URLSearchParams({ action });
+      Object.entries(payload).forEach(([key, value]) => {
+        body.set(key, value || "");
+      });
+
       const response = await fetch(STAFF_BACKEND_URL, {
         method: "POST",
-        body: JSON.stringify({ action, ...payload })
+        body
       });
       const responseText = await response.text();
       let data;
@@ -632,7 +645,7 @@
       }
 
       try {
-        const data = await staffBackendRequest("session", { token });
+        const data = await staffBackendRequest(STAFF_BACKEND_ACTIONS.session, { token });
         if (data.authenticated) {
           setLoggedIn(data.role);
         } else {
@@ -649,7 +662,7 @@
       const token = currentSessionToken();
       try {
         if (token && backendConfigured()) {
-          await staffBackendRequest("logout", { token });
+          await staffBackendRequest(STAFF_BACKEND_ACTIONS.logout, { token });
         }
       } finally {
         clearSessionToken();
@@ -661,7 +674,7 @@
       event.preventDefault();
       loginError.textContent = "";
       try {
-        const data = await staffBackendRequest("login", { password: passwordInput.value });
+        const data = await staffBackendRequest(STAFF_BACKEND_ACTIONS.login, { password: passwordInput.value });
         saveSessionToken(data.token);
         setLoggedIn(data.role);
         closeLoginModal();
@@ -675,7 +688,7 @@
       passwordMessage.style.color = "#a8f0a8";
       passwordMessage.textContent = "";
       try {
-        const data = await staffBackendRequest("updatePasswords", {
+        const data = await staffBackendRequest(STAFF_BACKEND_ACTIONS.updatePasswords, {
           token: currentSessionToken(),
           adminPassword: document.getElementById("adminPasswordInput").value,
           staffPassword: document.getElementById("staffPasswordInput").value
@@ -701,7 +714,7 @@
     async function checkLive() {
       let data = { live: false };
       try {
-        data = await staffBackendRequest("liveStatus");
+        data = await staffBackendRequest(STAFF_BACKEND_ACTIONS.liveStatus);
       } catch (error) {
         data = { live: false };
       }
