@@ -174,6 +174,12 @@
     #liveIndicator:hover {
       transform: scale(1.05);
     }
+
+
+    .staff-controls { margin: 18px auto 8px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .staff-btn { background: #fff; color: #000; border: none; border-radius: 10px; padding: 10px 14px; font-weight: bold; cursor: pointer; }
+    #staffStatus { font-size: 14px; color: #ccc; }
+
   </style>
 </head>
 <body>
@@ -193,12 +199,78 @@
   <h2 id="status">
     <strong>Live Stream Services</strong><br>Watch here or on YouTube<br>every Sunday at 2:00PM PST
   </h2>
+  <div class="staff-controls">
+    <button class="staff-btn" id="staffLoginBtn" onclick="staffLogin()">Staff Login</button>
+    <button class="staff-btn" id="staffLogoutBtn" onclick="staffLogout()" style="display: none;">Staff Logout</button>
+  </div>
+  <div id="staffStatus"></div>
+  <div id="staffContent"></div>
+
   <div id="topContent"></div>
   <div id="bottomContent" style="padding: 0 10px;"></div>
 
   <script>
     const API_KEY = "AIzaSyA7bU3MKozwte7W_jOXq-uz8ccBmddkp28";
     const CHANNEL_ID = "UCubyomJfZo_C11A5fxRWnGw";
+
+    let csrfToken = null;
+
+    async function getCsrfToken() {
+      if (csrfToken) return csrfToken;
+      const res = await fetch('/api/csrf-token', { credentials: 'include' });
+      const data = await res.json();
+      csrfToken = data.csrfToken;
+      return csrfToken;
+    }
+
+    async function updateStaffUi() {
+      const res = await fetch('/api/staff/session', { credentials: 'include' });
+      const data = await res.json();
+      const isLoggedIn = !!data.authenticated;
+
+      document.getElementById("staffLoginBtn").style.display = isLoggedIn ? "none" : "inline-block";
+      document.getElementById("staffLogoutBtn").style.display = isLoggedIn ? "inline-block" : "none";
+      document.getElementById("staffStatus").textContent = isLoggedIn ? "Staff access enabled" : "";
+
+      const container = document.getElementById('staffContent');
+      container.innerHTML = '';
+      if (!isLoggedIn) return;
+
+      const contentRes = await fetch('/api/prayer-requests', { credentials: 'include' });
+      if (!contentRes.ok) return;
+      const prayer = await contentRes.json();
+      const list = prayer.items.map((item) => `<li>${item}</li>`).join('');
+      container.innerHTML = `
+        <section style="max-width:700px;margin:20px auto;padding:18px;border:1px solid #333;border-radius:10px;background:#151515;text-align:left;">
+          <h2 style="margin-top:0;"><strong>${prayer.title}</strong></h2>
+          <p style="font-size:16px;margin-bottom:8px;">${prayer.intro}</p>
+          <ul style="line-height:1.8;padding-left:18px;margin-top:0;">${list}</ul>
+        </section>
+      `;
+    }
+
+    async function staffLogin() {
+      const password = prompt('Enter staff password:');
+      if (!password) return;
+      const token = await getCsrfToken();
+      const res = await fetch('/api/staff/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'CSRF-Token': token },
+        credentials: 'include',
+        body: JSON.stringify({ password })
+      });
+      if (!res.ok) {
+        alert('Incorrect password.');
+        return;
+      }
+      updateStaffUi();
+    }
+
+    async function staffLogout() {
+      const token = await getCsrfToken();
+      await fetch('/api/staff/logout', { method: 'POST', credentials: 'include', headers: { 'CSRF-Token': token } });
+      updateStaffUi();
+    }
 
     const bottomHTML = `
       <div style="margin-top: 25px;">
@@ -336,6 +408,8 @@
       document.getElementById("modal").style.display = "none";
     }
         
+    updateStaffUi();
+
     checkLive();
     setInterval(checkLive, 30000);
   </script>
