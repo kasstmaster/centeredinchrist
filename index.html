@@ -563,7 +563,24 @@
     }
 
     function backendConfigured() {
-      return STAFF_BACKEND_URL && !STAFF_BACKEND_URL.includes("https://script.google.com/macros/s/AKfycbyfpBKb7KL-tAfJxAj7qguttBameaThzVwAYs9Z08Vlk6d4DvIbXqUKfWW-neN0KVWt/exec");
+      const backendUrl = STAFF_BACKEND_URL.trim();
+      const placeholderValues = new Set([
+        "",
+        "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE"
+      ]);
+
+      if (placeholderValues.has(backendUrl)) {
+        return false;
+      }
+
+      try {
+        const url = new URL(backendUrl);
+        return url.protocol === "https:"
+          && url.hostname === "script.google.com"
+          && /^\/macros\/s\/[^/]+\/exec\/?$/.test(url.pathname);
+      } catch (error) {
+        return false;
+      }
     }
 
     function saveSessionToken(token) {
