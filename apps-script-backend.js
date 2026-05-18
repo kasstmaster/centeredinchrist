@@ -67,6 +67,9 @@ function handleRequest_(e) {
     if (action === 'publicPrayerRequests') {
       return json_(publicPrayerRequests_());
     }
+    if (action === 'removePublicPrayerRequest') {
+      return json_(removePublicPrayerRequest_(request));
+    }
     if (action === 'liveStatus') {
       return json_(liveStatus_());
     }
@@ -324,10 +327,18 @@ function updatePasswords_(request) {
   }
 }
 
-function adminSession_(request, logMessage) {
+function staffSession_(request, logMessage) {
   const sessionResult = validateSession_(request.token);
   if (!sessionResult.authenticated) {
     return { ok: false, error: 'Please log in again.' };
+  }
+  return { ok: true, role: sessionResult.role };
+}
+
+function adminSession_(request, logMessage) {
+  const sessionResult = staffSession_(request, logMessage);
+  if (!sessionResult.ok) {
+    return sessionResult;
   }
   if (sessionResult.role !== 'admin') {
     log_(logMessage, { role: sessionResult.role });
@@ -464,6 +475,41 @@ function publicPrayerRequests_() {
   const prayerRequests = approvedPrayerRequests_();
 
   return { ok: true, prayerRequests: prayerRequests };
+}
+
+function removePublicPrayerRequest_(request) {
+  const session = staffSession_(request, 'non-staff public prayer removal rejected');
+  if (!session.ok) {
+    return session;
+  }
+
+  const requestId = String(request.requestId || '').trim();
+  if (!requestId) {
+    return { ok: false, error: 'Prayer request ID is required.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = prayerModerationSheet_();
+    const moderation = prayerModerationMap_();
+    const prayerRequest = moderation[requestId];
+    if (!prayerRequest || prayerRequest.status !== PRAYER_STATUS_APPROVED) {
+      return { ok: false, error: 'Approved prayer request was not found.' };
+    }
+
+    sheet.getRange(prayerRequest.rowNumber, 2, 1, 4).setValues([[
+      PRAYER_STATUS_DENIED,
+      prayerRequest.text,
+      prayerRequest.createdAt || new Date().toISOString(),
+      new Date().toISOString()
+    ]]);
+  } finally {
+    lock.releaseLock();
+  }
+
+  log_('public prayer request removed', { requestId: requestId, role: session.role });
+  return { ok: true, success: true };
 }
 
 function approvedPrayerRequests_() {
