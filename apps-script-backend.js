@@ -5,10 +5,11 @@
  *   Execute as: Me
  *   Who has access: Anyone
  *
- * SHEET_ID should already be saved as a Script Property named SHEET_ID.
- * If you used a const in your test code instead, replace the fallback string below.
+ * SHEET_ID can be saved as a Script Property named SHEET_ID.
+ * If it is not set, the fallback sheet ID below is used.
  */
-const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo';
+const FALLBACK_SHEET_ID = '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo';
+const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || FALLBACK_SHEET_ID;
 const PASSWORD_SHEET_NAME = 'Password';
 const PASSWORD_RANGE = 'A1:B2';
 const PASSWORD_UPDATE_RANGE = 'A2:B2';
@@ -118,10 +119,11 @@ function json_(payload) {
 }
 
 function spreadsheet_() {
-  if (!SHEET_ID || SHEET_ID === '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo') {
+  const sheetId = String(SHEET_ID || '').trim();
+  if (!sheetId) {
     throw new Error('SHEET_ID is not configured.');
   }
-  return SpreadsheetApp.openById(SHEET_ID);
+  return SpreadsheetApp.openById(sheetId);
 }
 
 function passwordSheet_() {
