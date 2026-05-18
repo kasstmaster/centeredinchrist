@@ -21,6 +21,9 @@ function doPost(e) {
     const request = parseRequest_(e);
     const action = String(request.action || '');
 
+    if (action === 'ping') {
+      return json_(ping_());
+    }
     if (action === 'login') {
       return json_(login_(request));
     }
@@ -44,7 +47,11 @@ function doPost(e) {
   }
 }
 
-function doGet() {
+function doGet(e) {
+  const request = e && e.parameter ? e.parameter : {};
+  if (request.action === 'ping') {
+    return json_(ping_());
+  }
   return json_({ ok: true, service: 'centeredinchrist-staff-auth' });
 }
 
@@ -56,11 +63,42 @@ function parseRequest_(e) {
   const content = e.postData && e.postData.contents ? e.postData.contents : '';
   const type = e.postData && e.postData.type ? e.postData.type : '';
 
-  if (content && type.indexOf('application/json') !== -1) {
-    return JSON.parse(content);
+  if (content) {
+    if (type.indexOf('application/json') !== -1 || type.indexOf('text/plain') !== -1) {
+      return JSON.parse(content);
+    }
+    if (type.indexOf('application/x-www-form-urlencoded') !== -1) {
+      return parseFormBody_(content);
+    }
   }
 
   return e.parameter || {};
+}
+
+function parseFormBody_(content) {
+  return content.split('&').reduce(function(result, pair) {
+    if (!pair) {
+      return result;
+    }
+    const parts = pair.split('=');
+    const key = decodeFormValue_(parts.shift() || '');
+    const value = decodeFormValue_(parts.join('='));
+    result[key] = value;
+    return result;
+  }, {});
+}
+
+function decodeFormValue_(value) {
+  return decodeURIComponent(String(value || '').replace(/\+/g, ' '));
+}
+
+function ping_() {
+  return {
+    ok: true,
+    service: 'centeredinchrist-staff-auth',
+    action: 'ping',
+    timestamp: new Date().toISOString()
+  };
 }
 
 function json_(payload) {

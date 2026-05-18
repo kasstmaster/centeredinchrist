@@ -29,3 +29,25 @@ const STAFF_BACKEND_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 with the copied `/exec` Web App URL.
 
 The Web App URL is not a password or Sheet ID. It is safe to place in the static website because all password checks and Sheet access happen inside Apps Script.
+
+## 4. Test the Web App JSON response
+
+After each Apps Script change, deploy a new Web App version and test that the deployed `/exec` URL returns JSON before testing the login form:
+
+```sh
+curl -L "YOUR_WEB_APP_EXEC_URL?action=ping"
+```
+
+Expected response shape:
+
+```json
+{"ok":true,"service":"centeredinchrist-staff-auth","action":"ping","timestamp":"..."}
+```
+
+You can also test the same simple POST format used by the website:
+
+```sh
+curl -L -X POST --data '{"action":"ping"}' "YOUR_WEB_APP_EXEC_URL"
+```
+
+The website intentionally sends this as a simple text request without custom headers so Apps Script can handle it without a CORS preflight.
