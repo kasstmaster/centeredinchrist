@@ -433,7 +433,7 @@
   </div>
 
   <script>
-    const STAFF_BACKEND_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+    const STAFF_BACKEND_URL = "https://script.google.com/macros/s/AKfycbyfpBKb7KL-tAfJxAj7qguttBameaThzVwAYs9Z08Vlk6d4DvIbXqUKfWW-neN0KVWt/exec";
     const STAFF_SESSION_TOKEN_KEY = "cicStaffSessionToken";
 
     const bottomHTML = `
@@ -563,7 +563,7 @@
     }
 
     function backendConfigured() {
-      return STAFF_BACKEND_URL && !STAFF_BACKEND_URL.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE");
+      return STAFF_BACKEND_URL && !STAFF_BACKEND_URL.includes("https://script.google.com/macros/s/AKfycbyfpBKb7KL-tAfJxAj7qguttBameaThzVwAYs9Z08Vlk6d4DvIbXqUKfWW-neN0KVWt/exec");
     }
 
     function saveSessionToken(token) {
