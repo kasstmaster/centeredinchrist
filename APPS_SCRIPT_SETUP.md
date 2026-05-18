@@ -6,7 +6,7 @@ The website remains static-hostable. Authentication and password updates are han
 
 1. Open your Google Apps Script project that is connected to the Google Sheet.
 2. Replace the current test code with the full contents of `apps-script-backend.js` from this repository.
-3. Make sure `SHEET_ID` is available as a Script Property named `SHEET_ID`. If you used a hard-coded constant in the test code instead, replace `PASTE_YOUR_EXISTING_SHEET_ID_HERE` in `apps-script-backend.js` with your real sheet ID inside Apps Script only.
+3. `apps-script-backend.js` includes the current spreadsheet ID as a fallback. If you need to point the backend at a different spreadsheet, set `SHEET_ID` as a Script Property or update `FALLBACK_SHEET_ID` inside Apps Script only.
 4. Optional for stream status: add Script Properties `YOUTUBE_API_KEY` and `YOUTUBE_CHANNEL_ID`. If omitted, the stream status safely falls back to offline.
 
 ## 2. Deploy as a Web App
@@ -44,10 +44,10 @@ Expected response shape:
 {"ok":true,"service":"centeredinchrist-staff-auth","action":"ping","timestamp":"..."}
 ```
 
-You can also test the same simple POST format used by the website:
+You can also test the same URL-encoded POST format used by the website:
 
 ```sh
-curl -L -X POST --data '{"action":"ping"}' "YOUR_WEB_APP_EXEC_URL"
+curl -L -X POST --data 'action=ping' "YOUR_WEB_APP_EXEC_URL"
 ```
 
-The website intentionally sends this as a simple text request without custom headers so Apps Script can handle it without a CORS preflight.
+The website intentionally sends a simple request without custom headers so Apps Script can handle it without a CORS preflight.

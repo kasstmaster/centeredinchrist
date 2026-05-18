@@ -5,10 +5,11 @@
  *   Execute as: Me
  *   Who has access: Anyone
  *
- * SHEET_ID should already be saved as a Script Property named SHEET_ID.
- * If you used a const in your test code instead, replace the fallback string below.
+ * SHEET_ID can be saved as a Script Property named SHEET_ID.
+ * If it is not set, the fallback sheet ID below is used.
  */
-const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo';
+const FALLBACK_SHEET_ID = '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo';
+const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || FALLBACK_SHEET_ID;
 const PASSWORD_SHEET_NAME = 'Password';
 const PASSWORD_RANGE = 'A1:B2';
 const PASSWORD_UPDATE_RANGE = 'A2:B2';
@@ -17,10 +18,26 @@ const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const DEFAULT_YOUTUBE_CHANNEL_ID = 'UCubyomJfZo_C11A5fxRWnGw';
 
 function doPost(e) {
+  return handleRequest_(e);
+}
+
+function doGet(e) {
+  return handleRequest_(e);
+}
+
+function handleRequest_(e) {
   try {
     const request = parseRequest_(e);
     const action = String(request.action || '');
 
+    if (action === 'ping' || (!action && !hasPostBody_(e))) {
+      return json_({
+        ok: true,
+        service: 'centeredinchrist-staff-auth',
+        action: action || 'status',
+        timestamp: new Date().toISOString()
+      });
+    }
     if (action === 'login') {
       return json_(login_(request));
     }
@@ -37,6 +54,7 @@ function doPost(e) {
       return json_(liveStatus_());
     }
 
+    log_('unknown action', { action: action, requestKeys: Object.keys(request) });
     return json_({ ok: false, error: 'Unknown action.' });
   } catch (error) {
     log_('request failed', { error: error.message });
@@ -44,23 +62,54 @@ function doPost(e) {
   }
 }
 
-function doGet() {
-  return json_({ ok: true, service: 'centeredinchrist-staff-auth' });
-}
-
 function parseRequest_(e) {
   if (!e) {
     return {};
   }
 
-  const content = e.postData && e.postData.contents ? e.postData.contents : '';
-  const type = e.postData && e.postData.type ? e.postData.type : '';
+  const parameters = e.parameter || {};
+  const content = e.postData && e.postData.contents ? String(e.postData.contents) : '';
+  const type = e.postData && e.postData.type ? String(e.postData.type) : '';
 
-  if (content && type.indexOf('application/json') !== -1) {
-    return JSON.parse(content);
+  if (!content) {
+    return parameters;
   }
 
-  return e.parameter || {};
+  if (type.indexOf('application/json') !== -1 || content.trim().charAt(0) === '{') {
+    return Object.assign({}, parameters, JSON.parse(content));
+  }
+
+  if (type.indexOf('application/x-www-form-urlencoded') !== -1 || content.indexOf('=') !== -1) {
+    return Object.assign({}, parameters, parseFormBody_(content));
+  }
+
+  return parameters;
+}
+
+function hasPostBody_(e) {
+  return Boolean(e && e.postData && e.postData.contents);
+}
+
+function parseFormBody_(content) {
+  const parsed = {};
+  content.split('&').forEach(function(part) {
+    if (!part) {
+      return;
+    }
+
+    const separator = part.indexOf('=');
+    const rawKey = separator === -1 ? part : part.slice(0, separator);
+    const rawValue = separator === -1 ? '' : part.slice(separator + 1);
+    const key = decodeFormComponent_(rawKey);
+    if (key) {
+      parsed[key] = decodeFormComponent_(rawValue);
+    }
+  });
+  return parsed;
+}
+
+function decodeFormComponent_(value) {
+  return decodeURIComponent(String(value || '').replace(/\+/g, ' '));
 }
 
 function json_(payload) {
@@ -70,10 +119,11 @@ function json_(payload) {
 }
 
 function spreadsheet_() {
-  if (!SHEET_ID || SHEET_ID === '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo') {
+  const sheetId = String(SHEET_ID || '').trim();
+  if (!sheetId) {
     throw new Error('SHEET_ID is not configured.');
   }
-  return SpreadsheetApp.openById(SHEET_ID);
+  return SpreadsheetApp.openById(sheetId);
 }
 
 function passwordSheet_() {
