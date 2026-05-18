@@ -8,7 +8,7 @@
  * SHEET_ID should already be saved as a Script Property named SHEET_ID.
  * If you used a const in your test code instead, replace the fallback string below.
  */
-const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || 'PASTE_YOUR_EXISTING_SHEET_ID_HERE';
+const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo';
 const PASSWORD_SHEET_NAME = 'Password';
 const PASSWORD_RANGE = 'A1:B2';
 const PASSWORD_UPDATE_RANGE = 'A2:B2';
@@ -21,9 +21,6 @@ function doPost(e) {
     const request = parseRequest_(e);
     const action = String(request.action || '');
 
-    if (action === 'ping') {
-      return json_(ping_());
-    }
     if (action === 'login') {
       return json_(login_(request));
     }
@@ -47,11 +44,7 @@ function doPost(e) {
   }
 }
 
-function doGet(e) {
-  const request = e && e.parameter ? e.parameter : {};
-  if (request.action === 'ping') {
-    return json_(ping_());
-  }
+function doGet() {
   return json_({ ok: true, service: 'centeredinchrist-staff-auth' });
 }
 
@@ -63,42 +56,11 @@ function parseRequest_(e) {
   const content = e.postData && e.postData.contents ? e.postData.contents : '';
   const type = e.postData && e.postData.type ? e.postData.type : '';
 
-  if (content) {
-    if (type.indexOf('application/json') !== -1 || type.indexOf('text/plain') !== -1) {
-      return JSON.parse(content);
-    }
-    if (type.indexOf('application/x-www-form-urlencoded') !== -1) {
-      return parseFormBody_(content);
-    }
+  if (content && type.indexOf('application/json') !== -1) {
+    return JSON.parse(content);
   }
 
   return e.parameter || {};
-}
-
-function parseFormBody_(content) {
-  return content.split('&').reduce(function(result, pair) {
-    if (!pair) {
-      return result;
-    }
-    const parts = pair.split('=');
-    const key = decodeFormValue_(parts.shift() || '');
-    const value = decodeFormValue_(parts.join('='));
-    result[key] = value;
-    return result;
-  }, {});
-}
-
-function decodeFormValue_(value) {
-  return decodeURIComponent(String(value || '').replace(/\+/g, ' '));
-}
-
-function ping_() {
-  return {
-    ok: true,
-    service: 'centeredinchrist-staff-auth',
-    action: 'ping',
-    timestamp: new Date().toISOString()
-  };
 }
 
 function json_(payload) {
@@ -108,7 +70,7 @@ function json_(payload) {
 }
 
 function spreadsheet_() {
-  if (!SHEET_ID || SHEET_ID === 'PASTE_YOUR_EXISTING_SHEET_ID_HERE') {
+  if (!SHEET_ID || SHEET_ID === '1PdYM_zYNnWEz5A36v31erUBvRlPLwUK4dljEc5GWOIo') {
     throw new Error('SHEET_ID is not configured.');
   }
   return SpreadsheetApp.openById(SHEET_ID);
