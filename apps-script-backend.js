@@ -13,6 +13,10 @@ const SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID')
 const PASSWORD_SHEET_NAME = 'Password';
 const PASSWORD_RANGE = 'A1:B2';
 const PASSWORD_UPDATE_RANGE = 'A2:B2';
+const PRAYER_REQUESTS_SHEET_NAME = 'Form Responses';
+const PRAYER_REQUEST_TEXT_HEADER = 'Please provide as much detailed information as possible';
+const PRAYER_REQUEST_CONFIDENTIAL_HEADER = 'Is this confidential?';
+const PRAYER_REQUEST_SHARE_VALUE = 'No, please share with as many people as possible';
 const SESSION_SHEET_NAME = 'StaffSessions';
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const DEFAULT_YOUTUBE_CHANNEL_ID = 'UCubyomJfZo_C11A5fxRWnGw';
@@ -49,6 +53,9 @@ function handleRequest_(e) {
     }
     if (action === 'updatePasswords') {
       return json_(updatePasswords_(request));
+    }
+    if (action === 'prayerRequests') {
+      return json_(prayerRequests_(request));
     }
     if (action === 'liveStatus') {
       return json_(liveStatus_());
@@ -130,6 +137,14 @@ function passwordSheet_() {
   const sheet = spreadsheet_().getSheetByName(PASSWORD_SHEET_NAME);
   if (!sheet) {
     throw new Error('Password sheet was not found.');
+  }
+  return sheet;
+}
+
+function prayerRequestsSheet_() {
+  const sheet = spreadsheet_().getSheetByName(PRAYER_REQUESTS_SHEET_NAME);
+  if (!sheet) {
+    throw new Error('Prayer requests sheet was not found.');
   }
   return sheet;
 }
@@ -286,6 +301,50 @@ function updatePasswords_(request) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function prayerRequests_(request) {
+  const sessionResult = validateSession_(request.token);
+  if (!sessionResult.authenticated) {
+    return { ok: false, error: 'Please log in again.' };
+  }
+  if (sessionResult.role !== 'admin') {
+    log_('non-admin prayer request access rejected', { role: sessionResult.role });
+    return { ok: false, error: 'Admin access is required.' };
+  }
+
+  const sheet = prayerRequestsSheet_();
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+  if (lastRow < 2 || lastColumn < 1) {
+    return { ok: true, prayerRequests: [] };
+  }
+
+  const values = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
+  const headers = values[0].map(function(header) {
+    return normalizeHeader_(header);
+  });
+  const requestIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_TEXT_HEADER));
+  const confidentialIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_CONFIDENTIAL_HEADER));
+
+  if (requestIndex === -1 || confidentialIndex === -1) {
+    throw new Error('Prayer request columns were not found.');
+  }
+
+  const prayerRequests = [];
+  values.slice(1).forEach(function(row) {
+    const confidentialAnswer = String(row[confidentialIndex] || '').trim();
+    const requestText = String(row[requestIndex] || '').trim();
+    if (confidentialAnswer === PRAYER_REQUEST_SHARE_VALUE && requestText) {
+      prayerRequests.push(requestText);
+    }
+  });
+
+  return { ok: true, prayerRequests: prayerRequests };
+}
+
+function normalizeHeader_(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
 }
 
 function liveStatus_() {

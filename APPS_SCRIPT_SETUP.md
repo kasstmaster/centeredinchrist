@@ -1,13 +1,14 @@
 # Google Apps Script staff/admin backend setup
 
-The website remains static-hostable. Authentication and password updates are handled by a Google Apps Script Web App connected to the Google Sheet.
+The website remains static-hostable. Authentication, password updates, and admin prayer request loading are handled by a Google Apps Script Web App connected to the Google Sheet.
 
 ## 1. Paste the backend code
 
 1. Open your Google Apps Script project that is connected to the Google Sheet.
 2. Replace the current test code with the full contents of `apps-script-backend.js` from this repository.
 3. `apps-script-backend.js` includes the current spreadsheet ID as a fallback. If you need to point the backend at a different spreadsheet, set `SHEET_ID` as a Script Property or update `FALLBACK_SHEET_ID` inside Apps Script only.
-4. Optional for stream status: add Script Properties `YOUTUBE_API_KEY` and `YOUTUBE_CHANNEL_ID`. If omitted, the stream status safely falls back to offline.
+4. The admin Prayer Requests section reads the `Form Responses` tab. It displays rows where `Is this confidential?` exactly equals `No, please share with as many people as possible`, using the same row's `Please provide as much detailed information as possible` value.
+5. Optional for stream status: add Script Properties `YOUTUBE_API_KEY` and `YOUTUBE_CHANNEL_ID`. If omitted, the stream status safely falls back to offline.
 
 ## 2. Deploy as a Web App
 
