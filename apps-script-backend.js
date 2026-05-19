@@ -16,9 +16,10 @@ const PASSWORD_UPDATE_RANGE = 'A2:B2';
 const PRAYER_REQUESTS_SHEET_NAME = 'Form Responses';
 const PRAYER_REQUEST_TEXT_HEADER = 'Please provide as much detailed information as possible';
 const PRAYER_REQUEST_CONFIDENTIAL_HEADER = 'Is this confidential?';
+const PRAYER_REQUEST_FIRST_NAME_HEADER = 'First Name';
 const PRAYER_REQUEST_SHARE_VALUE = 'No, please share with as many people as possible';
 const PRAYER_MODERATION_SHEET_NAME = 'PrayerModeration';
-const PRAYER_MODERATION_HEADERS = ['requestId', 'status', 'requestText', 'createdAt', 'updatedAt'];
+const PRAYER_MODERATION_HEADERS = ['requestId', 'status', 'requestText', 'createdAt', 'updatedAt', 'firstName'];
 const PRAYER_STATUS_APPROVED = 'approved';
 const PRAYER_STATUS_DENIED = 'denied';
 const SESSION_SHEET_NAME = 'StaffSessions';
@@ -169,6 +170,17 @@ function prayerModerationSheet_() {
     sheet = spreadsheet.insertSheet(PRAYER_MODERATION_SHEET_NAME);
     sheet.appendRow(PRAYER_MODERATION_HEADERS);
     sheet.hideSheet();
+  } else {
+    const headerRange = sheet.getRange(1, 1, 1, PRAYER_MODERATION_HEADERS.length);
+    const headers = headerRange.getValues()[0].map(function(header) {
+      return String(header || '');
+    });
+    const headersNeedUpdate = PRAYER_MODERATION_HEADERS.some(function(header, index) {
+      return headers[index] !== header;
+    });
+    if (headersNeedUpdate) {
+      headerRange.setValues([PRAYER_MODERATION_HEADERS]);
+    }
   }
   return sheet;
 }
@@ -361,6 +373,7 @@ function sourcePrayerRequests_() {
   });
   const requestIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_TEXT_HEADER));
   const confidentialIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_CONFIDENTIAL_HEADER));
+  const firstNameIndex = headerIndexAfter_(headers, PRAYER_REQUEST_FIRST_NAME_HEADER, confidentialIndex);
 
   if (requestIndex === -1 || confidentialIndex === -1) {
     throw new Error('Prayer request columns were not found.');
@@ -375,6 +388,7 @@ function sourcePrayerRequests_() {
       prayerRequests.push({
         id: prayerRequestId_(rowNumber, requestText),
         text: requestText,
+        firstName: firstNameIndex === -1 ? '' : String(row[firstNameIndex] || '').trim(),
         rowNumber: rowNumber
       });
     }
@@ -400,7 +414,8 @@ function prayerModerationMap_() {
         status: String(row[1] || ''),
         text: String(row[2] || ''),
         createdAt: row[3],
-        updatedAt: row[4]
+        updatedAt: row[4],
+        firstName: String(row[5] || '').trim()
       };
     }
   });
@@ -450,14 +465,15 @@ function moderatePrayerRequest_(request) {
     const moderation = prayerModerationMap_();
     const now = new Date().toISOString();
     if (moderation[requestId]) {
-      sheet.getRange(moderation[requestId].rowNumber, 2, 1, 4).setValues([[
+      sheet.getRange(moderation[requestId].rowNumber, 2, 1, 5).setValues([[
         status,
         prayerRequest.text,
         moderation[requestId].createdAt || now,
-        now
+        now,
+        prayerRequest.firstName
       ]]);
     } else {
-      sheet.appendRow([requestId, status, prayerRequest.text, now, now]);
+      sheet.appendRow([requestId, status, prayerRequest.text, now, now, prayerRequest.firstName]);
     }
 
     if (status === PRAYER_STATUS_APPROVED) {
@@ -529,6 +545,7 @@ function approvedPrayerRequests_() {
       prayerRequests.push({
         id: requestId,
         text: requestText,
+        firstName: String(row[5] || '').trim(),
         approvedAt: row[4] || row[3] || ''
       });
     }
@@ -549,6 +566,17 @@ function deleteSourcePrayerRequest_(prayerRequest) {
   if (rowNumber >= 2) {
     prayerRequestsSheet_().deleteRow(rowNumber);
   }
+}
+
+function headerIndexAfter_(headers, header, afterIndex) {
+  const normalizedHeader = normalizeHeader_(header);
+  const startIndex = Math.max(Number(afterIndex) + 1, 0);
+  for (let index = startIndex; index < headers.length; index++) {
+    if (headers[index] === normalizedHeader) {
+      return index;
+    }
+  }
+  return headers.indexOf(normalizedHeader);
 }
 
 function normalizeHeader_(value) {
