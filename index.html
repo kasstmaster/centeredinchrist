@@ -835,8 +835,8 @@
     }
 
     function prayerRequestTitle(request) {
-      const firstName = request && typeof request === "object" ? String(request.firstName || "").trim() : "";
-      return firstName ? `Prayer Request by ${firstName}` : "Prayer Request";
+      const displayName = request && typeof request === "object" ? String(request.displayName || "").trim() : "";
+      return displayName ? `Prayer Request by ${displayName}` : "Prayer Request";
     }
 
     function renderPrayerRequests(prayerRequests) {
