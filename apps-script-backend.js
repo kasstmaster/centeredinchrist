@@ -16,11 +16,11 @@ const PASSWORD_UPDATE_RANGE = 'A2:B2';
 const PRAYER_REQUESTS_SHEET_NAME = 'Form Responses';
 const PRAYER_REQUEST_TEXT_HEADER = 'Please provide as much detailed information as possible';
 const PRAYER_REQUEST_CONFIDENTIAL_HEADER = 'Is this confidential?';
-const PRAYER_REQUEST_FIRST_NAME_HEADER = 'First Name';
+const PRAYER_REQUEST_DISPLAY_NAME_HEADER = 'Display Name';
 const PRAYER_REQUEST_SHARE_VALUE = 'No, please share with as many people as possible';
 const PRAYER_REQUEST_SHARE_PREFIX = 'no';
 const PRAYER_MODERATION_SHEET_NAME = 'PrayerModeration';
-const PRAYER_MODERATION_HEADERS = ['requestId', 'status', 'requestText', 'createdAt', 'updatedAt', 'firstName'];
+const PRAYER_MODERATION_HEADERS = ['requestId', 'status', 'requestText', 'createdAt', 'updatedAt', 'displayName'];
 const PRAYER_STATUS_APPROVED = 'approved';
 const PRAYER_STATUS_DENIED = 'denied';
 const SESSION_SHEET_NAME = 'StaffSessions';
@@ -374,7 +374,7 @@ function sourcePrayerRequests_() {
   });
   const requestIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_TEXT_HEADER));
   const confidentialIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_CONFIDENTIAL_HEADER));
-  const firstNameIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_FIRST_NAME_HEADER));
+  const displayNameIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_DISPLAY_NAME_HEADER));
 
   if (requestIndex === -1 || confidentialIndex === -1) {
     throw new Error('Prayer request columns were not found.');
@@ -389,7 +389,7 @@ function sourcePrayerRequests_() {
       prayerRequests.push({
         id: prayerRequestId_(rowNumber, requestText),
         text: requestText,
-        firstName: firstNameIndex === -1 ? '' : String(row[firstNameIndex] || '').trim(),
+        displayName: displayNameIndex === -1 ? '' : String(row[displayNameIndex] || '').trim(),
         rowNumber: rowNumber
       });
     }
@@ -427,7 +427,7 @@ function prayerModerationMap_() {
         text: String(row[2] || ''),
         createdAt: row[3],
         updatedAt: row[4],
-        firstName: String(row[5] || '').trim()
+        displayName: String(row[5] || '').trim()
       };
     }
   });
@@ -482,10 +482,10 @@ function moderatePrayerRequest_(request) {
         prayerRequest.text,
         moderation[requestId].createdAt || now,
         now,
-        prayerRequest.firstName
+        prayerRequest.displayName
       ]]);
     } else {
-      sheet.appendRow([requestId, status, prayerRequest.text, now, now, prayerRequest.firstName]);
+      sheet.appendRow([requestId, status, prayerRequest.text, now, now, prayerRequest.displayName]);
     }
 
     if (status === PRAYER_STATUS_APPROVED) {
@@ -557,7 +557,7 @@ function approvedPrayerRequests_() {
       prayerRequests.push({
         id: requestId,
         text: requestText,
-        firstName: String(row[5] || '').trim(),
+        displayName: String(row[5] || '').trim(),
         approvedAt: row[4] || row[3] || ''
       });
     }
