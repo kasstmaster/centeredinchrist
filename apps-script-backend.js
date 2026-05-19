@@ -373,7 +373,7 @@ function sourcePrayerRequests_() {
   });
   const requestIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_TEXT_HEADER));
   const confidentialIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_CONFIDENTIAL_HEADER));
-  const firstNameIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_FIRST_NAME_HEADER));
+  const firstNameIndex = headerIndexAfter_(headers, PRAYER_REQUEST_FIRST_NAME_HEADER, confidentialIndex);
 
   if (requestIndex === -1 || confidentialIndex === -1) {
     throw new Error('Prayer request columns were not found.');
@@ -566,6 +566,17 @@ function deleteSourcePrayerRequest_(prayerRequest) {
   if (rowNumber >= 2) {
     prayerRequestsSheet_().deleteRow(rowNumber);
   }
+}
+
+function headerIndexAfter_(headers, header, afterIndex) {
+  const normalizedHeader = normalizeHeader_(header);
+  const startIndex = Math.max(Number(afterIndex) + 1, 0);
+  for (let index = startIndex; index < headers.length; index++) {
+    if (headers[index] === normalizedHeader) {
+      return index;
+    }
+  }
+  return headers.indexOf(normalizedHeader);
 }
 
 function normalizeHeader_(value) {
