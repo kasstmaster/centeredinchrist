@@ -156,11 +156,22 @@ function passwordSheet_() {
 }
 
 function prayerRequestsSheet_() {
-  const sheet = spreadsheet_().getSheetByName(PRAYER_REQUESTS_SHEET_NAME);
-  if (!sheet) {
-    throw new Error('Prayer requests sheet was not found.');
+  const spreadsheet = spreadsheet_();
+  const namedSheet = spreadsheet.getSheetByName(PRAYER_REQUESTS_SHEET_NAME);
+  if (namedSheet) {
+    return namedSheet;
   }
-  return sheet;
+
+  const sheets = spreadsheet.getSheets();
+  for (let index = 0; index < sheets.length; index++) {
+    const sheet = sheets[index];
+    const normalizedName = normalizeHeader_(sheet.getName()).toLowerCase();
+    if (normalizedName.indexOf('form responses') !== -1) {
+      return sheet;
+    }
+  }
+
+  throw new Error('Prayer requests sheet was not found.');
 }
 
 function prayerModerationSheet_() {
@@ -385,7 +396,7 @@ function sourcePrayerRequests_() {
     const rowNumber = index + 2;
     const confidentialAnswer = normalizeHeader_(row[confidentialIndex]);
     const requestText = String(row[requestIndex] || '').trim();
-    if (confidentialAnswer === normalizeHeader_(PRAYER_REQUEST_SHARE_VALUE) && requestText) {
+    if (isShareablePrayerRequest_(confidentialAnswer) && requestText) {
       prayerRequests.push({
         id: prayerRequestId_(rowNumber, requestText),
         text: requestText,
@@ -614,6 +625,19 @@ function headerIndexAfter_(headers, header, afterIndex) {
 
 function normalizeHeader_(value) {
   return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
+function isShareablePrayerRequest_(confidentialAnswer) {
+  const normalizedAnswer = normalizeHeader_(confidentialAnswer).toLowerCase();
+  if (!normalizedAnswer) {
+    return false;
+  }
+
+  if (normalizedAnswer === normalizeHeader_(PRAYER_REQUEST_SHARE_VALUE).toLowerCase()) {
+    return true;
+  }
+
+  return normalizedAnswer.indexOf('no') !== -1 && normalizedAnswer.indexOf('share') !== -1;
 }
 
 function liveStatus_() {
