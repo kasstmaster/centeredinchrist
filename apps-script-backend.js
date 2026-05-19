@@ -18,6 +18,7 @@ const PRAYER_REQUEST_TEXT_HEADER = 'Please provide as much detailed information 
 const PRAYER_REQUEST_CONFIDENTIAL_HEADER = 'Is this confidential?';
 const PRAYER_REQUEST_FIRST_NAME_HEADER = 'First Name';
 const PRAYER_REQUEST_SHARE_VALUE = 'No, please share with as many people as possible';
+const PRAYER_REQUEST_SHARE_PREFIX = 'no';
 const PRAYER_MODERATION_SHEET_NAME = 'PrayerModeration';
 const PRAYER_MODERATION_HEADERS = ['requestId', 'status', 'requestText', 'createdAt', 'updatedAt', 'firstName'];
 const PRAYER_STATUS_APPROVED = 'approved';
@@ -384,7 +385,7 @@ function sourcePrayerRequests_() {
     const rowNumber = index + 2;
     const confidentialAnswer = String(row[confidentialIndex] || '').trim();
     const requestText = String(row[requestIndex] || '').trim();
-    if (confidentialAnswer === PRAYER_REQUEST_SHARE_VALUE && requestText) {
+    if (isPrayerShareable_(confidentialAnswer) && requestText) {
       prayerRequests.push({
         id: prayerRequestId_(rowNumber, requestText),
         text: requestText,
@@ -395,6 +396,17 @@ function sourcePrayerRequests_() {
   });
 
   return prayerRequests.reverse();
+}
+
+function isPrayerShareable_(confidentialAnswer) {
+  const normalizedAnswer = normalizeHeader_(String(confidentialAnswer || ''));
+  const normalizedShareValue = normalizeHeader_(PRAYER_REQUEST_SHARE_VALUE);
+
+  if (!normalizedAnswer) {
+    return false;
+  }
+
+  return normalizedAnswer === normalizedShareValue || normalizedAnswer.indexOf(PRAYER_REQUEST_SHARE_PREFIX) === 0;
 }
 
 function prayerModerationMap_() {
