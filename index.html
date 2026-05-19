@@ -834,6 +834,11 @@
       return request && typeof request === "object" ? request.id || "" : "";
     }
 
+    function prayerRequestTitle(request) {
+      const firstName = request && typeof request === "object" ? String(request.firstName || "").trim() : "";
+      return firstName ? `Prayer Request by ${firstName}` : "Prayer Request";
+    }
+
     function renderPrayerRequests(prayerRequests) {
       if (!Array.isArray(prayerRequests) || prayerRequests.length === 0) {
         prayerRequestsList.innerHTML = `<li class="prayer-request-empty">No pending shareable prayer requests are available.</li>`;
@@ -844,6 +849,7 @@
         const id = escapeHTML(prayerRequestId(request));
         return `
           <li class="prayer-request-card" data-prayer-request-id="${id}">
+            <div class="public-prayer-card-title">${escapeHTML(prayerRequestTitle(request))}</div>
             <div>${escapeHTML(prayerRequestText(request))}</div>
             <div class="prayer-request-actions">
               <button type="button" class="prayer-action-button deny" data-prayer-status="denied">Deny</button>
@@ -857,7 +863,7 @@
     function renderPublicPrayerRequests(prayerRequests) {
       currentPublicPrayerRequests = Array.isArray(prayerRequests) ? prayerRequests : [];
       if (currentPublicPrayerRequests.length === 0) {
-        publicPrayerRequests.innerHTML = `<p class="prayer-request-empty">No approved prayer requests are available yet.</p>`;
+        publicPrayerRequests.innerHTML = "";
         return;
       }
 
@@ -868,7 +874,7 @@
           : "";
         return `
           <article class="public-prayer-card" data-public-prayer-request-id="${id}">
-            <div class="public-prayer-card-title">Prayer Request</div>
+            <div class="public-prayer-card-title">${escapeHTML(prayerRequestTitle(request))}</div>
             <div class="public-prayer-text">${escapeHTML(prayerRequestText(request))}</div>
             ${removeButton}
           </article>
