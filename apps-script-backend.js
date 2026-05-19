@@ -423,7 +423,7 @@ function prayerModerationMap_() {
 }
 
 function prayerRequests_(request) {
-  const session = adminSession_(request, 'non-admin prayer request access rejected');
+  const session = staffSession_(request, 'non-staff prayer request access rejected');
   if (!session.ok) {
     return session;
   }
@@ -437,7 +437,7 @@ function prayerRequests_(request) {
 }
 
 function moderatePrayerRequest_(request) {
-  const session = adminSession_(request, 'non-admin prayer moderation rejected');
+  const session = staffSession_(request, 'non-staff prayer moderation rejected');
   if (!session.ok) {
     return session;
   }
