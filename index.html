@@ -266,11 +266,6 @@
       text-align: left;
     }
 
-    .public-prayer-section h1 {
-      text-align: center;
-      margin-bottom: 14px;
-    }
-
     .public-prayer-scroll {
       display: flex;
       gap: 14px;
@@ -290,6 +285,13 @@
       font-size: 14px;
       line-height: 1.45;
       word-break: break-word;
+    }
+
+    .public-prayer-card-title {
+      text-align: center;
+      font-size: inherit;
+      font-weight: normal;
+      margin-bottom: 10px;
     }
 
     .public-prayer-text {
@@ -496,8 +498,7 @@
     <br>Centered in Christ Ministries
   </div>
 
-  <section class="public-prayer-section" aria-labelledby="publicPrayerTitle">
-    <h1 id="publicPrayerTitle">Prayer Requests</h1>
+  <section class="public-prayer-section" aria-label="Prayer requests">
     <div id="publicPrayerRequests" class="public-prayer-scroll" aria-live="polite">
       <p class="prayer-request-empty">Loading prayer requests...</p>
     </div>
@@ -867,6 +868,7 @@
           : "";
         return `
           <article class="public-prayer-card" data-public-prayer-request-id="${id}">
+            <div class="public-prayer-card-title">Prayer Request</div>
             <div class="public-prayer-text">${escapeHTML(prayerRequestText(request))}</div>
             ${removeButton}
           </article>
