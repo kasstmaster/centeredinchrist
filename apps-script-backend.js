@@ -371,9 +371,10 @@ function sourcePrayerRequests_() {
   const headers = values[0].map(function(header) {
     return normalizeHeader_(header);
   });
-  const requestIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_TEXT_HEADER));
-  const confidentialIndex = headers.indexOf(normalizeHeader_(PRAYER_REQUEST_CONFIDENTIAL_HEADER));
-  const firstNameIndex = headerIndexAfter_(headers, PRAYER_REQUEST_FIRST_NAME_HEADER, confidentialIndex);
+  const columnIndexes = prayerRequestColumnIndexes_(headers);
+  const requestIndex = columnIndexes.requestIndex;
+  const confidentialIndex = columnIndexes.confidentialIndex;
+  const firstNameIndex = columnIndexes.firstNameIndex;
 
   if (requestIndex === -1 || confidentialIndex === -1) {
     throw new Error('Prayer request columns were not found.');
@@ -382,9 +383,9 @@ function sourcePrayerRequests_() {
   const prayerRequests = [];
   values.slice(1).forEach(function(row, index) {
     const rowNumber = index + 2;
-    const confidentialAnswer = String(row[confidentialIndex] || '').trim();
+    const confidentialAnswer = normalizeHeader_(row[confidentialIndex]);
     const requestText = String(row[requestIndex] || '').trim();
-    if (confidentialAnswer === PRAYER_REQUEST_SHARE_VALUE && requestText) {
+    if (confidentialAnswer === normalizeHeader_(PRAYER_REQUEST_SHARE_VALUE) && requestText) {
       prayerRequests.push({
         id: prayerRequestId_(rowNumber, requestText),
         text: requestText,
@@ -566,6 +567,38 @@ function deleteSourcePrayerRequest_(prayerRequest) {
   if (rowNumber >= 2) {
     prayerRequestsSheet_().deleteRow(rowNumber);
   }
+}
+
+function prayerRequestColumnIndexes_(headers) {
+  const requestIndex = headerIndexFor_(headers, PRAYER_REQUEST_TEXT_HEADER, [
+    'provide as much detailed information',
+    'detailed information'
+  ]);
+  const confidentialIndex = headerIndexFor_(headers, PRAYER_REQUEST_CONFIDENTIAL_HEADER, [
+    'confidential'
+  ]);
+  return {
+    requestIndex: requestIndex,
+    confidentialIndex: confidentialIndex,
+    firstNameIndex: headerIndexAfter_(headers, PRAYER_REQUEST_FIRST_NAME_HEADER, confidentialIndex)
+  };
+}
+
+function headerIndexFor_(headers, exactHeader, partialHeaders) {
+  const exactIndex = headers.indexOf(normalizeHeader_(exactHeader));
+  if (exactIndex !== -1) {
+    return exactIndex;
+  }
+
+  for (let partialIndex = 0; partialIndex < partialHeaders.length; partialIndex++) {
+    const partialHeader = normalizeHeader_(partialHeaders[partialIndex]).toLowerCase();
+    for (let headerIndex = 0; headerIndex < headers.length; headerIndex++) {
+      if (String(headers[headerIndex] || '').toLowerCase().indexOf(partialHeader) !== -1) {
+        return headerIndex;
+      }
+    }
+  }
+  return -1;
 }
 
 function headerIndexAfter_(headers, header, afterIndex) {
